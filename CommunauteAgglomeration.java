@@ -3,7 +3,7 @@ import java.util.Map;
 import java.util.List;
 import java.util.HashMap;
 import java.util.ArrayList;
-import java.util.Scanner;
+//import java.util.Scanner;
 
 // Classe représentant une communauté d'agglomération
 public class CommunauteAgglomeration {
@@ -15,13 +15,13 @@ public class CommunauteAgglomeration {
 
   // Scanner pour lire les entrées de l'utilisateur dans les méthodes demandant
   // des saisies à l'utilisateur
-  private Scanner scanner;
+  //private Scanner scanner;
 
   // Constructeur de la classe
   public CommunauteAgglomeration(int nombreVilles) {
     this.nombreVilles = nombreVilles;
     this.mapVilles = new HashMap<Ville, List<Ville>>();
-    this.scanner = new Scanner(System.in);
+    //this.scanner = new Scanner(System.in);
   }
 
   // Méthode pour ajouter une ville à la communauté d'agglomération
@@ -101,6 +101,7 @@ public class CommunauteAgglomeration {
     return this.nombreVilles;
   }
 
+
   // Méthode pour ajouter une zone de recharge à une ville
   public boolean ajouterZoneRecharge(Ville ville) {
     if (!ville.aZoneRecharge()) {
@@ -113,31 +114,48 @@ public class CommunauteAgglomeration {
     }
   }
 
+
+    // Méthode qui retourne le nombre de zones de recharge adjacentes à une ville
+  // donnée
+  // utilisée dans supprimerZoneRecharge()
+  /*public int nombreZonesRechargeAdjacents(Ville ville) {
+    int nombreZonesRechargeAdjacents = 0;
+    for (Ville villeAdjacente : getVillesAdjacentes(ville)) {
+      if (villeAdjacente.aZoneRecharge()) {
+        nombreZonesRechargeAdjacents++;
+      }
+    }
+    return nombreZonesRechargeAdjacents;
+  }
+
   // Méthode pour supprimer une zone de recharge d'une ville
   public void supprimerZoneRecharge(Ville ville) {
-    if (ville.aZoneRecharge()) {
-      // Vérifier si des villes voisines ont encore une zone de recharge
-      List<Ville> villesVoisines = getVillesAdjacentes(ville);
+    if (!ville.aZoneRecharge()) {
+      System.out.println("Vous ne pouvez pas supprimer une zone de recharge qui n'existe pas!!!");
+      return;
+    }
+    // le cas où la ville a une zone de recharge
 
-      boolean voisinsAvecZone = false;
+    boolean condition = false;
 
-      for (Ville voisine : villesVoisines) {
-        if (voisine.aZoneRecharge()) {
-          voisinsAvecZone = true;
+    if (nombreZonesRechargeAdjacents(ville) == 1) {
+      for (Ville v : getVillesAdjacentes(ville)) {
+        if ((nombreZonesRechargeAdjacents(v)) == 1) {// il y a un voisin de voisin qui a aucune zone de recharge (car on
+                                                     // ne compte pas la ville en question)
+          condition = true;//donc ce n'est pas possible
           break;
         }
       }
-
-      if (voisinsAvecZone) {
-        ville.setZoneRecharge(false);
-        System.out.println("La zone de recharge a été supprimée de la ville " + ville.getNom());
-      } else {
-        System.out.println(
-            "Vous ne pouvez pas supprimer une zone de recharge si les villes voisines n'ont pas de zone ou n'ont accès à aucun zone dans les villes voisines.");
-      }
-    } else {
-      System.out.println("Vous ne pouvez supprimer une zone de recharge qui n'existe pas");
     }
+
+    if (condition) {
+      System.out.println(
+          "Vous ne pouvez pas supprimer cette zone de recharge car sinon un de ses voisins sera déconnécté d'une zone de recharge!!!");
+      return;
+    }
+
+    ville.setZoneRecharge(false);// tout est vérifié et donc il est possible de supprimer la zone de recharge
+    System.out.println("La zone de recharge a été supprimée de la ville " + ville.getNom());
   }
 
 
@@ -148,14 +166,14 @@ public class CommunauteAgglomeration {
       System.out.println();
       System.out.println("1. Ajouter une route");
       System.out.println("2. Supprimer une route");
-      System.out.println("3. Quitter");
+      System.out.println("3. Menu suivant");
       System.out.print("Votre choix : ");
       choix = scanner.nextInt();
       scanner.nextLine();
 
       if (choix == 1 || choix == 2) {
         afficherVilles();
-        System.out.println("Vous allez rajouter ou supprimer une route entre deux villes. ");
+        System.out.println("Vous allez ajouter ou supprimer une route entre deux villes. ");
 
         System.out.println("Entrez le nom de la première ville : ");
         String nomVille1 = scanner.nextLine();
@@ -184,7 +202,6 @@ public class CommunauteAgglomeration {
           supprimerRoute(v1, v2);
         }
       } else if (choix == 3) {
-        // sc.close();
         System.out.println();
         System.out.println("Passage au menu suivant: ");
         return;
@@ -207,48 +224,41 @@ public class CommunauteAgglomeration {
       System.out.print("Entrez votre choix : ");
       choix = scanner.nextInt();
       scanner.nextLine();
-      switch (choix) {
-        case 1:
-          System.out.println("Entrez le nom de la ville : ");
-          String nomVille = scanner.nextLine();
-          nomVille = nomVille.toUpperCase();
 
-          Ville villeAj = null;
 
-          for (Ville v : getVilles()) {
-            if (v.getNom().equals(nomVille)) {
-              System.out.println("Ville trouvée");
-              villeAj = v;
-            }
+       if (choix == 1 || choix == 2) {
+        afficherVilles();
+        System.out.println("Vous allez ajouter ou supprimer une zone de recharge entre deux villes. ");
 
-          } // une exception a gere si les villes ne sont pas trouvees
-          ajouterZoneRecharge(villeAj);
-          break;
-        case 2:
-          System.out.println("Entrez le nom de la ville : ");
-          nomVille = scanner.nextLine();
-          nomVille = nomVille.toUpperCase();
+        System.out.println("Entrez le nom de la ville : ");
+        String nomVille = scanner.nextLine();
+        nomVille = nomVille.toUpperCase();
+        
 
-          Ville villeSupp = null;
+        Ville v = null;
+        
 
-          for (Ville v : getVilles()) {
-            if (v.getNom().equals(nomVille)) {
-              System.out.println("Ville trouvée");
-              villeSupp = v;
-              break; // Sortir de la boucle une fois que la ville est trouvée
-            }
+        for (Ville ville : getVilles()) {
+          if (ville.getNom().equals(nomVille)) {
+            System.out.println("Ville " + ville.getNom() + " trouvée");
+            v = ville;
+          }
+        } // une exception a gere si les villes ne sont pas trouvees
 
-          } // une exception a gérer si les villes ne sont pas trouvees
-          supprimerZoneRecharge(villeSupp);
-          break;
-        case 3:
-          System.out.println("Le menu a été quitté avec succès ");
-          break;
-        default:
-          System.out.println("Choix invalide");
-          break;
+        if (choix == 1) {
+          ajouterZoneRecharge(v);
+        } else if (choix == 2) {
+          supprimerZoneRecharge(v);
+        }
+      } else if (choix == 3) {
+        System.out.println();
+        System.out.println("Quitter ");
+        return;
+      } else {
+        System.out.println("Choix non-valable");
       }
-    } while (choix != 3);
+
+    } while (true);
 
   }
 
@@ -258,4 +268,5 @@ public class CommunauteAgglomeration {
     }
   }
 
+}*/
 }

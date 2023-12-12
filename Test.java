@@ -26,16 +26,16 @@ public class Test {
     communauteA.afficherVilles();
     System.out.println();
     // Affiche le menu pour ajouter ou supprimer une route
-    communauteA.menuAjouterSupprimerRoute();
+    //communauteA.menuAjouterSupprimerRoute();
     System.out.println();
     // Affiche le menu pour ajouter ou supprimer une zone de recharge
-    communauteA.menuAjouterSupprimerZoneRecharge();
+    //communauteA.menuAjouterSupprimerZoneRecharge();
     // Affiche les routes de la communauté d'agglomération
     communauteA.afficherRoutes();
     // Affiche les villes avec une zone de recharge
     communauteA.afficherVillesAvecZoneRecharge();
     // Ferme le scanner correspondant à la communauté d'agglomération
-    communauteA.closeScanner();
+   // communauteA.closeScanner();
     // Ferme le scanner
     sc.close();
 

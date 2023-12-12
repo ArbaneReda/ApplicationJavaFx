@@ -22,6 +22,7 @@ public class SecondPage {
     private final Scene mainScene;
     private final CommunauteAgglomeration communaute;
     private Map<String, Circle> villeCircles;
+    private CommunauteFileManager fileManager;
 
     // Constructeur de la classe
     public SecondPage(Stage primaryStage, Scene mainScene, CommunauteAgglomeration communaute) {
@@ -29,6 +30,7 @@ public class SecondPage {
         this.mainScene = mainScene;
         this.communaute = communaute;
         this.villeCircles = new HashMap<>();
+        this.fileManager = new CommunauteFileManager(communaute);
     }
 
     // Méthode pour afficher la deuxième page
@@ -95,22 +97,34 @@ public class SecondPage {
 
     // Méthode pour gérer le début du programme
     private void handleStart(Pane graphPane, TextArea terminalOutputPane, HBox buttonBox) {
-        TextInputDialog dialog = new TextInputDialog();
-        dialog.setTitle("Nombre de villes");
-        dialog.setHeaderText("Création des villes");
-        dialog.setContentText("Entrez le nombre de villes :");
+        buttonBox.getChildren().clear(); // Nettoyer les boutons existants
+    
+        Button manuelButton = createButton("Manuellement", "#4CAF50");
+        Button fichierButton = createButton("Fichier", "#2196F3");
+    
+        manuelButton.setOnAction(e -> saisieManuelle(graphPane, terminalOutputPane, buttonBox));
+    fichierButton.setOnAction(e -> fileManager.ouvrirFichierCommunaute(primaryStage));
+    
+        buttonBox.getChildren().addAll(manuelButton, fichierButton);
+    }
 
-        Optional<String> result = dialog.showAndWait();
-        result.ifPresent(number -> {
+    private void saisieManuelle(Pane graphPane, TextArea terminalOutputPane, HBox buttonBox) {
+        TextInputDialog numberDialog = new TextInputDialog();
+        numberDialog.setTitle("Nombre de villes");
+        numberDialog.setHeaderText("Création des villes");
+        numberDialog.setContentText("Entrez le nombre de villes :");
+    
+        Optional<String> numberResult = numberDialog.showAndWait();
+        numberResult.ifPresent(number -> {
             try {
                 int nbVilles = Integer.parseInt(number);
                 char villeName = 'A';
                 for (int i = 0; i < nbVilles; i++) {
-                    String nomVille = String.valueOf((char) (villeName + i)); // Crée le nom de ville A, B, C, etc.
+                    String nomVille = String.valueOf((char) (villeName + i));
                     communaute.ajouterVille(new Ville(nomVille));
                 }
                 terminalOutputPane.appendText("Villes créées : " + nbVilles + "\n");
-                showRoutesMenu(buttonBox, graphPane, terminalOutputPane);
+                showRoutesMenu(buttonBox, graphPane, terminalOutputPane,true);
             } catch (NumberFormatException e) {
                 Alert alert = new Alert(Alert.AlertType.ERROR);
                 alert.setTitle("Erreur de saisie");
@@ -122,21 +136,25 @@ public class SecondPage {
     }
 
     // Méthode pour mettre à jour l'interface utilisateur pour les routes
-    private void showRoutesMenu(HBox buttonBox, Pane graphPane, TextArea terminalOutputPane) {
+    private void showRoutesMenu(HBox buttonBox, Pane graphPane, TextArea terminalOutputPane, boolean clearGraph) {
         buttonBox.getChildren().clear();
-
+    
         Button addRouteButton = createButton("Ajouter une route", "#2196F3");
         Button removeRouteButton = createButton("Supprimer une route", "#F44336");
         Button nextMenuButton = createButton("Menu Suivant", "#FFA500");
         Button quitButton = createButton("Quitter", "#9E9E9E");
-
+    
         addRouteButton.setOnAction(e -> addRoute(graphPane));
-        removeRouteButton.setOnAction(e -> removeRoute(graphPane)); // Mettez à jour cette ligne
+        removeRouteButton.setOnAction(e -> removeRoute(graphPane));
         nextMenuButton.setOnAction(e -> showRechargeZoneMenu(graphPane, terminalOutputPane, buttonBox));
         quitButton.setOnAction(e -> primaryStage.setScene(mainScene));
-
+    
         buttonBox.getChildren().addAll(addRouteButton, removeRouteButton, nextMenuButton, quitButton);
-        displayGraph(graphPane, terminalOutputPane);
+    
+        // Afficher le graphe seulement si nécessaire
+        if (clearGraph) {
+            displayGraph(graphPane, terminalOutputPane);
+        }
     }
 
     // Méthode pour afficher le menu de la zone de recharge
@@ -154,10 +172,7 @@ public class SecondPage {
 
         removeRechargeZoneButton.setOnAction(e -> removeRechargeZone(graphPane));
 
-        backButton.setOnAction(e -> {
-            // Logique pour revenir au menu précédent
-            showRoutesMenu(buttonBox, graphPane, terminalOutputPane);
-        });
+        backButton.setOnAction(e -> showRoutesMenu(buttonBox, graphPane, terminalOutputPane, false));
 
         // Ajouter les nouveaux boutons à la HBox
         buttonBox.getChildren().addAll(addRechargeZoneButton, removeRechargeZoneButton, backButton);
@@ -272,28 +287,37 @@ public class SecondPage {
         dialog.setTitle("Supprimer une zone de recharge");
         dialog.setHeaderText("Sélectionnez une ville:");
         Optional<Ville> result = dialog.showAndWait();
-
-        result.ifPresent(ville -> {
+    
+        result.ifPresent(ville -> { // ifPresent() est appelé si l'utilisateur a sélectionné une ville
             if (!ville.aZoneRecharge()) {
                 showAlert("Suppression de zone de recharge",
                         "La ville " + ville.getNom() + " n'a pas de zone de recharge à supprimer.");
                 return;
             }
-
-            List<Ville> villesVoisines = communaute.getVillesAdjacentes(ville);
-            boolean voisinsAvecZone = villesVoisines.stream().anyMatch(Ville::aZoneRecharge);
-
-            if (!voisinsAvecZone) {
-                showAlert("Suppression de zone de recharge",
-                        "Vous ne pouvez pas supprimer la zone de recharge car aucune ville voisine n'a de zone de recharge.");
-                return;
+    
+            // On vérifie si la suppression de la zone de recharge de 'ville' isole une ville voisine
+            for (Ville voisine : communaute.getVillesAdjacentes(ville)) {
+                // Si 'voisine' n'a pas de zone de recharge et que toutes les villes adjacentes à 'voisine', sauf 'ville',
+                // n'ont pas de zone de recharge, alors on ne peut pas supprimer la zone de recharge de 'ville'
+                if (!voisine.aZoneRecharge() && communaute.getVillesAdjacentes(voisine).stream() // .stream() est utilisé pour convertir la liste en flux
+                        .filter(v -> !v.equals(ville)) // On exclut 'ville' de la vérification
+                        .noneMatch(Ville::aZoneRecharge)) { // renvoie true si aucune ville n'a de zone de recharge
+                    showAlert("Suppression de zone de recharge",
+                            "Vous ne pouvez pas supprimer la zone de recharge de " + ville.getNom() + 
+                            " car la ville " + voisine.getNom() + " serait isolée.");
+                    return;
+                }
             }
-
-            communaute.supprimerZoneRecharge(ville);
-            updateCircleColor(ville, Color.BLUE); // Remettre la couleur du cercle en bleu
+    
+            // Si la vérification est passée, on peut supprimer la zone de recharge
+            ville.setZoneRecharge(false);
+            updateCircleColor(ville, Color.BLUE);
             showAlert("Zone de recharge", "Zone de recharge supprimée pour la ville " + ville.getNom() + ".");
         });
     }
+
+    
+    
 
     // Cette méthode met à jour la couleur du cercle représentant la ville
     private void updateCircleColor(Ville ville, Color color) {
