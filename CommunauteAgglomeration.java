@@ -3,33 +3,47 @@ import java.util.Map;
 import java.util.List;
 import java.util.HashMap;
 import java.util.ArrayList;
-//import java.util.Scanner;
+import java.util.Scanner;
 
 // Classe représentant une communauté d'agglomération
 public class CommunauteAgglomeration {
 
-  // Nombre de villes dans la communauté d'agglomération
-  private int nombreVilles;
-  // Map associant à chaque ville une liste de villes adjacentes
-  private Map<Ville, List<Ville>> mapVilles;
+  // ----------------   Attributs   ----------------
 
-  // Scanner pour lire les entrées de l'utilisateur dans les méthodes demandant
-  // des saisies à l'utilisateur
-  //private Scanner scanner;
+  private final int nombreVilles; // Nombre de villes dans la communauté d'agglomération (non modifiable une fois initialisé)
+  private Map<Ville, List<Ville>> mapVilles; // Map associant à chaque ville une liste de villes adjacentes
 
-  // Constructeur de la classe
+  // Scanner pour lire les entrées de l'utilisateur dans les méthodes demandant des saisies à l'utilisateur
+  private Scanner scanner;
+
+  /*
+   * ----------------   Constructeur de la classe CommunauteAgglomeration   ----------------
+   * 
+   * @param nombreVilles : nombre de villes dans la communauté d'agglomération
+   */
   public CommunauteAgglomeration(int nombreVilles) {
     this.nombreVilles = nombreVilles;
     this.mapVilles = new HashMap<Ville, List<Ville>>();
-    //this.scanner = new Scanner(System.in);
+    this.scanner = new Scanner(System.in);
   }
 
-  // Méthode pour ajouter une ville à la communauté d'agglomération
+
+  // ----------------   Méthodes   ----------------
+  /*
+   * Méthode pour ajouter une ville à la communauté d'agglomération
+   * 
+   * @param ville : ville à ajouter
+   */
   public void ajouterVille(Ville ville) {
     this.mapVilles.put(ville, new ArrayList<Ville>());
   }
 
-  // Méthode pour ajouter une route entre deux villes
+  /*
+   * Méthode pour ajouter une route entre deux villes
+   * 
+   * @param ville1 : première ville
+   * @param ville2 : deuxième ville
+   */
   public boolean ajouterRoute(Ville ville1, Ville ville2) {
     if (!this.mapVilles.get(ville1).contains(ville2) && !this.mapVilles.get(ville2).contains(ville1)) {
       this.mapVilles.get(ville1).add(ville2);
@@ -42,7 +56,12 @@ public class CommunauteAgglomeration {
     }
   }
 
-  // Méthode pour supprimer une route entre deux villes
+  /*
+   * Méthode pour supprimer une route entre deux villes
+   * 
+   * @param ville1 : première ville
+   * @param ville2 : deuxième ville
+   */
   public boolean supprimerRoute(Ville ville1, Ville ville2) {
     if (this.mapVilles.get(ville1).contains(ville2) && this.mapVilles.get(ville2).contains(ville1)) {
       this.mapVilles.get(ville1).remove(ville2);
@@ -55,27 +74,45 @@ public class CommunauteAgglomeration {
     }
   }
 
-  // Méthode pour obtenir la liste des villes adjacentes à une ville donnée
+  /*
+   * Méthode pour obtenir la liste des villes adjacentes à une ville donnée
+   * 
+   * @param ville : ville dont on veut obtenir la liste des villes adjacentes
+   */
   public List<Ville> getVillesAdjacentes(Ville ville) {
     return this.mapVilles.get(ville);
   }
 
-  // Méthode pour obtenir la liste des villes de la communauté d'agglomération
+  /*
+   * Méthode pour obtenir la liste des villes de la communauté d'agglomération
+   */
   public List<Ville> getVilles() {
     return new ArrayList<Ville>(this.mapVilles.keySet());
   }
 
-  // Méthode pour afficher la liste des villes
+  /*
+   * Méthode pour obtenir le nombre de villes de la communauté d'agglomération
+   */
+  public int getNombreVilles() {
+    return this.nombreVilles;
+  }
+
+  /*
+   * Méthode pour obtenir la liste des routes de la communauté d'agglomération
+   */
   public void afficherVilles() {
-    System.out.println("Liste des villes : ");
+    System.out.println("####    Liste des villes :    ####\n");
     for (Ville ville : this.mapVilles.keySet()) {
       System.out.print(ville.getNom() + " ");
     }
+    System.out.println();
   }
 
-  // Méthode pour afficher la liste des routes
+  /*
+   * Méthode pour afficher la liste des routes de la communauté d'agglomération
+   */
   public void afficherRoutes() {
-    System.out.println("Liste des routes : ");
+    System.out.println("####    Liste des routes :    ####\n");
     for (Ville ville : this.mapVilles.keySet()) {
       System.out.print(ville.getNom() + " : ");
       for (Ville villeAdjacente : this.mapVilles.get(ville)) {
@@ -85,9 +122,11 @@ public class CommunauteAgglomeration {
     }
   }
 
-  // Méthode pour afficher la liste des villes avec une zone de recharge
+  /*
+   * Méthode pour afficher la liste des villes avec une zone de recharge
+   */
   public void afficherVillesAvecZoneRecharge() {
-    System.out.println("Liste des villes avec zone de recharge : ");
+    System.out.println("####    Liste des villes avec zone de recharge :    ####\n");
     for (Ville ville : this.mapVilles.keySet()) {
       if (ville.aZoneRecharge()) {
         System.out.print(ville.getNom() + " ");
@@ -96,13 +135,11 @@ public class CommunauteAgglomeration {
     System.out.println();
   }
 
-  // Méthode pour obtenir le nombre de villes
-  public int getNombreVilles() {
-    return this.nombreVilles;
-  }
-
-
-  // Méthode pour ajouter une zone de recharge à une ville
+  /*
+   * Méthode pour ajouter une zone de recharge à une ville
+   * 
+   * @param ville : ville à laquelle on veut ajouter une zone de recharge
+   */
   public boolean ajouterZoneRecharge(Ville ville) {
     if (!ville.aZoneRecharge()) {
       ville.setZoneRecharge(true);
@@ -115,10 +152,13 @@ public class CommunauteAgglomeration {
   }
 
 
-    // Méthode qui retourne le nombre de zones de recharge adjacentes à une ville
-  // donnée
-  // utilisée dans supprimerZoneRecharge()
-  /*public int nombreZonesRechargeAdjacents(Ville ville) {
+  /*
+   * Méthode pour obtenir le nombre de zones de recharge adjacentes à une ville
+   * cette méthode est utilisée dans la méthode supprimerZoneRecharge()
+   * 
+   * @param ville : ville dont on veut obtenir le nombre de zones de recharge adjacentes
+   */
+  public int nombreZonesRechargeAdjacents(Ville ville) {
     int nombreZonesRechargeAdjacents = 0;
     for (Ville villeAdjacente : getVillesAdjacentes(ville)) {
       if (villeAdjacente.aZoneRecharge()) {
@@ -128,7 +168,11 @@ public class CommunauteAgglomeration {
     return nombreZonesRechargeAdjacents;
   }
 
-  // Méthode pour supprimer une zone de recharge d'une ville
+  /*
+   * Méthode pour supprimer une zone de recharge à une ville
+   * 
+   * @param ville : ville à laquelle on veut supprimer une zone de recharge
+   */
   public void supprimerZoneRecharge(Ville ville) {
     if (!ville.aZoneRecharge()) {
       System.out.println("Vous ne pouvez pas supprimer une zone de recharge qui n'existe pas!!!");
@@ -159,7 +203,9 @@ public class CommunauteAgglomeration {
   }
 
 
-  // Méthode pour afficher un menu permettant d'ajouter ou de supprimer une route
+  /*
+   * Méthode pour afficher un menu permettant d'ajouter ou de supprimer une route
+   */
   public void menuAjouterSupprimerRoute() {
     int choix;
     do {
@@ -213,8 +259,9 @@ public class CommunauteAgglomeration {
 
   }
 
-  // Méthode pour afficher un menu permettant d'ajouter ou de supprimer une zone
-  // de recharge
+  /*
+   * Méthode pour afficher un menu permettant d'ajouter ou de supprimer une zone de recharge
+   */
   public void menuAjouterSupprimerZoneRecharge() {
     int choix;
     do {
@@ -261,12 +308,14 @@ public class CommunauteAgglomeration {
     } while (true);
 
   }
-
+  
+  /*
+   * Méthode pour fermer le scanner
+   */
   public void closeScanner() {
     if (scanner != null) {
       scanner.close();
     }
   }
 
-}*/
 }
