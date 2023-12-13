@@ -6,18 +6,26 @@ public class Main {
   private static final String MESSAGE_ENTRER_NOMBRE_VILLES = "Entrez le nombre de villes : ";
   private static final String MESSAGE_SAISIE_INCORRECTE = "Veuillez entrer un nombre positif ou égal à 1 et inférieur ou égal à 26.";
 
+  private static Scanner sc = new Scanner(System.in);
+
   /*
    * Méthode main() pour tester la communauté d'agglomération
    */
   public static void main(String[] args) {
-    Scanner sc = new Scanner(System.in);
     int nombreVilles = saisirNombreVilles();
     CommunauteAgglomeration communauteA = initialiserCommunaute(nombreVilles);
     ajouterVilles(communauteA, nombreVilles);
     afficherInformations(communauteA);
-    fermerScanner(sc);
-    System.out.println("Fin du programme. Au revoir !!!");
+    fermerScanner();
+    System.out.println("Au revoir !!!");
   }
+
+
+
+
+
+
+
 
   // -------- Méthodes secondaires utilisées dans main() --------
 
@@ -26,17 +34,29 @@ public class Main {
    */
   private static int saisirNombreVilles() {
     int nombreVilles;
-    do {
-      System.out.print(MESSAGE_ENTRER_NOMBRE_VILLES);
-      nombreVilles = sc.nextInt();
 
-      if (nombreVilles < 1 || nombreVilles > 26) {
-        System.out.println(MESSAGE_SAISIE_INCORRECTE);
-      }
+    do {
+        System.out.print(MESSAGE_ENTRER_NOMBRE_VILLES);
+
+        // Vérifier si l'entrée suivante est un entier
+        while (!sc.hasNextInt()) {
+            System.out.println("Veuillez entrer un nombre entier.");
+            System.out.print(MESSAGE_ENTRER_NOMBRE_VILLES);
+            sc.next(); // Consommer l'entrée invalide
+        }
+
+        // Lire l'entier
+        nombreVilles = sc.nextInt();
+
+        if (nombreVilles < 1 || nombreVilles > 26) {
+            System.out.println(MESSAGE_SAISIE_INCORRECTE);
+        }
 
     } while (nombreVilles < 1 || nombreVilles > 26);
+
     return nombreVilles;
-  }
+}
+
 
   private static CommunauteAgglomeration initialiserCommunaute(int nombreVilles) {
     return new CommunauteAgglomeration(nombreVilles);
@@ -77,13 +97,13 @@ public class Main {
     communauteA.afficherVillesAvecZoneRecharge();
 
     System.out.println();
-    System.out.println("fin du programme. Au revoir !!!!");
+    System.out.println("fin du programme.");
   }
 
   /*
    * Méthode pour fermer le scanner
    */
-  private static void fermerScanner(Scanner sc) {
+  private static void fermerScanner() {
     if (sc != null) {
       sc.close();
     }
