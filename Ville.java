@@ -58,6 +58,6 @@ public class Ville {
    */
   @Override
   public String toString() {
-    return "Ville [nom=" + nom + ", aZoneRecharge=" + aZoneRecharge + "]";
+    return nom;
   }
 }
