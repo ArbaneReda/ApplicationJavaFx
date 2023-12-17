@@ -112,6 +112,20 @@ public class CommunauteAgglomeration {
   }
 
   /*
+   * Méthode pour obtenir une ville à partir de son nom
+   * 
+   * @param nomVille : nom de la ville à obtenir
+   */
+  public Ville getVille(String nomVille) {
+    for (Ville ville : this.mapVilles.keySet()) {
+      if (ville.getNom().equals(nomVille)) {
+        return ville;
+      }
+    }
+    return null;
+  }
+
+  /*
    * Méthode pour obtenir la liste des villes de la communauté d'agglomération
    */
   public List<Ville> getVilles() {

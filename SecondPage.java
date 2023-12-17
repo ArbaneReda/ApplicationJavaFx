@@ -8,6 +8,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
 import javafx.stage.Stage;
+import javafx.util.Pair;
 import javafx.scene.text.Font;
 
 import java.util.HashMap;
@@ -49,13 +50,14 @@ public class SecondPage {
         buttonBox.setAlignment(Pos.CENTER);
         buttonBox.setPadding(new Insets(15, 0, 15, 0));
 
-        Button backButton = createButton("Retourner", "#6c7ae0");
         Button startButton = createButton("Commencer", "#4CAF50");
-
-        backButton.setOnAction(e -> primaryStage.setScene(mainScene));
+        Button backButton = createButton("Retourner", "#6c7ae0");
+        
         startButton.setOnAction(e -> handleStart(graphPane, terminalOutputPane, buttonBox));
+        backButton.setOnAction(e -> primaryStage.setScene(mainScene));
+        
 
-        buttonBox.getChildren().addAll(backButton, startButton);
+        buttonBox.getChildren().addAll(startButton, backButton);
         borderPane.setBottom(buttonBox);
 
         Scene secondPageScene = new Scene(borderPane, 800, 600);
@@ -103,7 +105,12 @@ public class SecondPage {
         Button fichierButton = createButton("Fichier", "#2196F3");
     
         manuelButton.setOnAction(e -> saisieManuelle(graphPane, terminalOutputPane, buttonBox));
-    fichierButton.setOnAction(e -> fileManager.ouvrirFichierCommunaute(primaryStage));
+        fichierButton.setOnAction(e -> {
+            fileManager.ouvrirFichierCommunaute(primaryStage);
+            // Après avoir lu les données du fichier, appelez displayGraph pour afficher les villes
+            showRoutesMenu(buttonBox, graphPane, terminalOutputPane,true);
+            displayGraph(graphPane, terminalOutputPane);
+        });
     
         buttonBox.getChildren().addAll(manuelButton, fichierButton);
     }
@@ -124,7 +131,12 @@ public class SecondPage {
                     communaute.ajouterVille(new Ville(nomVille));
                 }
                 terminalOutputPane.appendText("Villes créées : " + nbVilles + "\n");
-                showRoutesMenu(buttonBox, graphPane, terminalOutputPane,true);
+    
+                if (!communaute.getVilles().isEmpty()) {
+                    showRoutesMenu(buttonBox, graphPane, terminalOutputPane, true);
+                } else {
+                    showAlert("Aucune ville", "Aucune ville n'a été ajoutée à la communauté.");
+                }
             } catch (NumberFormatException e) {
                 Alert alert = new Alert(Alert.AlertType.ERROR);
                 alert.setTitle("Erreur de saisie");
@@ -134,6 +146,7 @@ public class SecondPage {
             }
         });
     }
+    
 
     // Méthode pour mettre à jour l'interface utilisateur pour les routes
     private void showRoutesMenu(HBox buttonBox, Pane graphPane, TextArea terminalOutputPane, boolean clearGraph) {
@@ -178,31 +191,36 @@ public class SecondPage {
         buttonBox.getChildren().addAll(addRechargeZoneButton, removeRechargeZoneButton, backButton);
     }
 
-    // Méthode pour ajouter une route
     private void addRoute(Pane graphPane) {
         List<Ville> villes = communaute.getVilles();
         ChoiceDialog<Ville> dialog = new ChoiceDialog<>(villes.get(0), villes);
         dialog.setTitle("Ajouter une route");
         dialog.setHeaderText("Sélectionnez la première ville:");
         Optional<Ville> result = dialog.showAndWait();
-
+    
         result.ifPresent(ville1 -> {
             ChoiceDialog<Ville> dialog2 = new ChoiceDialog<>(villes.get(1), villes);
             dialog2.setTitle("Ajouter une route");
             dialog2.setHeaderText("Sélectionnez la deuxième ville:");
             Optional<Ville> result2 = dialog2.showAndWait();
-
+    
             result2.ifPresent(ville2 -> {
-                boolean wasAdded = communaute.ajouterRoute(ville1, ville2);
-                if (wasAdded) {
-                    drawRoute(graphPane, ville1, ville2);
+                if (ville1.equals(ville2)) {
+                    showAlert("Erreur d'ajout de route",
+                            "Impossible d'ajouter une route à la même ville (" + ville1.getNom() + ").");
                 } else {
-                    showAlert("Ajout de route",
-                            "Une route existe déjà entre " + ville1.getNom() + " et " + ville2.getNom() + ".");
+                    boolean wasAdded = communaute.ajouterRoute(ville1, ville2);
+                    if (wasAdded) {
+                        drawRoute(graphPane, ville1, ville2);
+                    } else {
+                        showAlert("Ajout de route",
+                                "Une route existe déjà entre " + ville1.getNom() + " et " + ville2.getNom() + ".");
+                    }
                 }
             });
         });
     }
+    
 
     // Méthode pour supprimer une route
     private void removeRoute(Pane graphPane) {
@@ -287,6 +305,9 @@ public class SecondPage {
         dialog.setTitle("Supprimer une zone de recharge");
         dialog.setHeaderText("Sélectionnez une ville:");
         Optional<Ville> result = dialog.showAndWait();
+
+        // si une ville n'a pas de voisin, c'est à dire qu'elle est isolée, on ne peut pas supprimer sa zone de recharge
+        
     
         result.ifPresent(ville -> { // ifPresent() est appelé si l'utilisateur a sélectionné une ville
             if (!ville.aZoneRecharge()) {
@@ -294,7 +315,14 @@ public class SecondPage {
                         "La ville " + ville.getNom() + " n'a pas de zone de recharge à supprimer.");
                 return;
             }
-    
+             // si une ville n'a pas de voisin, c'est à dire qu'elle est isolée, on ne peut pas supprimer sa zone de recharge
+            if (communaute.getVillesAdjacentes(ville).isEmpty()) {
+                showAlert("Suppression de zone de recharge",
+                        "Vous ne pouvez pas supprimer la zone de recharge de " + ville.getNom() + 
+                        " car la ville est isolée.");
+                return;
+            }
+
             // On vérifie si la suppression de la zone de recharge de 'ville' isole une ville voisine
             for (Ville voisine : communaute.getVillesAdjacentes(ville)) {
                 // Si 'voisine' n'a pas de zone de recharge et que toutes les villes adjacentes à 'voisine', sauf 'ville',
@@ -391,6 +419,19 @@ public class SecondPage {
             graphPane.getChildren().addAll(circle, label);
             villeCircles.put(ville.getNom(), circle);
         }
+
+        // Dessiner les routes à partir de routesFromFile
+        for (Pair<String, String> routeInfo : CommunauteFileManager.getRoutesFromFile()) {
+        String ville1Name = routeInfo.getKey();
+        String ville2Name = routeInfo.getValue();
+        Ville ville1 = communaute.getVille(ville1Name);
+        Ville ville2 = communaute.getVille(ville2Name);
+
+        if (ville1 != null && ville2 != null) {
+            drawRoute(graphPane, ville1, ville2);
+        }
     }
+    }
+
 
 }
