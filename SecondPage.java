@@ -211,7 +211,7 @@ public class SecondPage {
                 } else {
                     boolean wasAdded = communaute.ajouterRoute(ville1, ville2);
                     if (wasAdded) {
-                        drawRoute(graphPane, ville1, ville2);
+                        drawRoute(graphPane, ville1, ville2); // Appel de drawRoute ici
                     } else {
                         showAlert("Ajout de route",
                                 "Une route existe déjà entre " + ville1.getNom() + " et " + ville2.getNom() + ".");
@@ -220,6 +220,7 @@ public class SecondPage {
             });
         });
     }
+    
     
 
     // Méthode pour supprimer une route
@@ -344,8 +345,6 @@ public class SecondPage {
         });
     }
 
-    
-    
 
     // Cette méthode met à jour la couleur du cercle représentant la ville
     private void updateCircleColor(Ville ville, Color color) {

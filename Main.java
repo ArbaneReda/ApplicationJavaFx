@@ -90,9 +90,9 @@ public class Main {
                                                                                   // d'affichage
     communauteA.afficherVilles();
     System.out.println();
-    communauteA.menuAjouterSupprimerRoute();
+    //communauteA.menuAjouterSupprimerRoute();
     System.out.println();
-    communauteA.menuAjouterSupprimerZoneRecharge();
+    //communauteA.menuAjouterSupprimerZoneRecharge();
     communauteA.afficherRoutes();
     communauteA.afficherVillesAvecZoneRecharge();
 

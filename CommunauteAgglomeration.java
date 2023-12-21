@@ -1,360 +1,376 @@
-
 import java.util.Map;
+import java.util.Set;
 import java.util.List;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.ArrayList;
-import java.util.Scanner;
 
-// Classe représentant une communauté d'agglomération
 public class CommunauteAgglomeration {
 
-  // ---------------- Attributs ----------------
+    private final int nombreVilles;
+    private Map<Ville, List<Ville>> mapVilles;
+    private Set<String> nomsVilles;
 
-  private final int nombreVilles; // Nombre de villes dans la communauté d'agglomération (non modifiable une fois
-                                  // initialisé)
-  private Map<Ville, List<Ville>> mapVilles; // Map associant à chaque ville une liste de villes adjacentes
+    public CommunauteAgglomeration(int nombreVilles) {
+        this.nombreVilles = nombreVilles;
+        this.mapVilles = new HashMap<Ville, List<Ville>>();
+        this.nomsVilles = new HashSet<>();
+    }
 
-  // Scanner pour lire les entrées de l'utilisateur dans les méthodes demandant
-  // des saisies à l'utilisateur
-  private Scanner scanner;
 
-  /*
-   * ---------------- Constructeur de la classe CommunauteAgglomeration
-   * ----------------
-   * 
-   * @param nombreVilles : nombre de villes dans la communauté d'agglomération
-   */
-  public CommunauteAgglomeration(int nombreVilles) {
-    this.nombreVilles = nombreVilles;
-    this.mapVilles = new HashMap<Ville, List<Ville>>();
-    this.scanner = new Scanner(System.in);
-  }
+    public CommunauteAgglomeration() {
+        this.nombreVilles = 0;
+        this.mapVilles = new HashMap<Ville, List<Ville>>();
+        this.nomsVilles = new HashSet<>();
+    }
 
-  // ---------------- Méthodes ----------------
-  /*
-   * Méthode pour ajouter une ville à la communauté d'agglomération
-   * 
-   * @param ville : ville à ajouter
-   */
-  public void ajouterVille(Ville ville) {
-    this.mapVilles.put(ville, new ArrayList<Ville>());
-  }
-
-  /*
-   * Méthode pour ajouter une route entre deux villes
-   * 
-   * @param ville1 : première ville
-   * 
-   * @param ville2 : deuxième ville
-   */
-  public boolean ajouterRoute(Ville ville1, Ville ville2) {
-    // Vérifier si les deux villes existent dans la mapVilles
-    if (this.mapVilles.containsKey(ville1) && this.mapVilles.containsKey(ville2)) {
-      // Vérifier que les villes ne sont pas les mêmes
-      if (!ville1.equals(ville2)) {
-        if (!this.mapVilles.get(ville1).contains(ville2) && !this.mapVilles.get(ville2).contains(ville1)) {
-          this.mapVilles.get(ville1).add(ville2);
-          this.mapVilles.get(ville2).add(ville1);
-          System.out.println("Route ajoutée entre " + ville1.getNom() + " et " + ville2.getNom() + ".");
-          return true;
-        } else {
-          System.out.println("Une route existe déjà entre ces deux villes.");
-          return false;
+    public void effacerZonesRecharge() {
+        for (Ville ville : this.mapVilles.keySet()) {
+            ville.setZoneRecharge(false);
         }
-      } else {
-        System.out.println("Vous ne pouvez pas ajouter de route entre une ville et elle-même.");
-        return false;
-      }
-    } else {
-      System.out.println("Au moins l'une des deux villes n'existe pas. Impossible d'ajouter une route.");
-      return false;
-    }
-  }
-
-  /*
-   * Méthode pour supprimer une route entre deux villes
-   * 
-   * @param ville1 : première ville
-   * 
-   * @param ville2 : deuxième ville
-   */
-  public boolean supprimerRoute(Ville ville1, Ville ville2) {
-    // Vérifier si les deux villes existent dans la mapVilles
-    if (this.mapVilles.containsKey(ville1) && this.mapVilles.containsKey(ville2)) {
-      // Vérifier que les villes ne sont pas les mêmes
-      if (!ville1.equals(ville2)) {
-        if (this.mapVilles.get(ville1).contains(ville2) && this.mapVilles.get(ville2).contains(ville1)) {
-          this.mapVilles.get(ville1).remove(ville2);
-          this.mapVilles.get(ville2).remove(ville1);
-          System.out.println("Route supprimée entre " + ville1.getNom() + " et " + ville2.getNom() + ".");
-          return true;
-        } else {
-          System.out.println("Impossible de supprimer une route inexistante entre ces deux villes.");
-          return false;
-        }
-      } else {
-        System.out.println("Vous ne pouvez pas supprimer une route entre une ville et elle-même.");
-        return false;
-      }
-    } else {
-      System.out.println("Au moins l'une des deux villes n'existe pas. Impossible de supprimer une route.");
-      return false;
-    }
-  }
-
-  /*
-   * Méthode pour obtenir la liste des villes adjacentes à une ville donnée
-   * 
-   * @param ville : ville dont on veut obtenir la liste des villes adjacentes
-   */
-  public List<Ville> getVillesAdjacentes(Ville ville) {
-    return this.mapVilles.get(ville);
-  }
-
-  /*
-   * Méthode pour obtenir une ville à partir de son nom
-   * 
-   * @param nomVille : nom de la ville à obtenir
-   */
-  public Ville getVille(String nomVille) {
-    for (Ville ville : this.mapVilles.keySet()) {
-      if (ville.getNom().equals(nomVille)) {
-        return ville;
-      }
-    }
-    return null;
-  }
-
-  /*
-   * Méthode pour obtenir la liste des villes de la communauté d'agglomération
-   */
-  public List<Ville> getVilles() {
-    return new ArrayList<Ville>(this.mapVilles.keySet());
-  }
-
-  /*
-   * Méthode pour obtenir le nombre de villes de la communauté d'agglomération
-   */
-  public int getNombreVilles() {
-    return this.nombreVilles;
-  }
-
-  /*
-   * Méthode pour obtenir la liste des routes de la communauté d'agglomération
-   */
-  public void afficherVilles() {
-    System.out.println("####    Liste des villes :    ####");
-    for (Ville ville : this.mapVilles.keySet()) {
-      System.out.print(ville.getNom() + " ");
-    }
-    System.out.println();
-  }
-
-  /*
-   * Méthode pour afficher la liste des routes de la communauté d'agglomération
-   */
-  public void afficherRoutes() {
-    System.out.println("####    Liste des routes :    ####");
-    for (Ville ville : this.mapVilles.keySet()) {
-      System.out.print(ville.getNom() + " : ");
-      for (Ville villeAdjacente : this.mapVilles.get(ville)) {
-        System.out.print(villeAdjacente.getNom() + " ");
-      }
-      System.out.println();
-    }
-  }
-
-  /*
-   * Méthode pour afficher la liste des villes avec une zone de recharge
-   */
-  public void afficherVillesAvecZoneRecharge() {
-    System.out.println("####    Liste des villes avec zone de recharge :    ####");
-    for (Ville ville : this.mapVilles.keySet()) {
-      if (ville.aZoneRecharge()) {
-        System.out.print(ville.getNom() + " ");
-      }
-    }
-    System.out.println();
-  }
-
-  /*
-   * Méthode pour ajouter une zone de recharge à une ville
-   * 
-   * @param ville : ville à laquelle on veut ajouter une zone de recharge
-   */
-  public boolean ajouterZoneRecharge(Ville ville) {
-    if (!ville.aZoneRecharge()) {
-      ville.setZoneRecharge(true);
-      System.out.println("Zone de recharge ajoutée à la ville " + ville.getNom());
-      return true;
-    } else {
-      System.out.println("La ville " + ville.getNom() + " possède déjà une zone de recharge.");
-      return false;
-    }
-  }
-
-  /*
-   * Méthode pour obtenir le nombre de zones de recharge adjacentes à une ville
-   * cette méthode est utilisée dans la méthode supprimerZoneRecharge()
-   * 
-   * @param ville : ville dont on veut obtenir le nombre de zones de recharge
-   * adjacentes
-   */
-  public int nombreZonesRechargeAdjacents(Ville ville) {
-    int nombreZonesRechargeAdjacents = 0;
-    for (Ville villeAdjacente : getVillesAdjacentes(ville)) {
-      if (villeAdjacente.aZoneRecharge()) {
-        nombreZonesRechargeAdjacents++;
-      }
-    }
-    return nombreZonesRechargeAdjacents;
-  }
-
-  /*
-   * Méthode pour supprimer une zone de recharge à une ville
-   * 
-   * @param ville : ville à laquelle on veut supprimer une zone de recharge
-   */
-  public void supprimerZoneRecharge(Ville ville) {
-    if (!ville.aZoneRecharge()) {
-      System.out.println("Vous ne pouvez pas supprimer une zone de recharge qui n'existe pas!!!");
-      return;
-    }
-    // le cas où la ville a une zone de recharge
-
-    boolean condition = false;
-
-    if (nombreZonesRechargeAdjacents(ville) == 1) {
-      for (Ville v : getVillesAdjacentes(ville)) {
-        if ((nombreZonesRechargeAdjacents(v)) == 1) {// il y a un voisin de voisin qui a aucune zone de recharge (car on
-                                                     // ne compte pas la ville en question)
-          condition = true;// donc ce n'est pas possible
-          break;
-        }
-      }
     }
 
-    if (condition) {
-      System.out.println(
-          "Vous ne pouvez pas supprimer cette zone de recharge car sinon un de ses voisins sera déconnécté d'une zone de recharge!!!");
-      return;
+    public Map<Ville, List<Ville>> getMapVilles() {
+        return new HashMap<>(this.mapVilles);
     }
 
-    ville.setZoneRecharge(false);// tout est vérifié et donc il est possible de supprimer la zone de recharge
-    System.out.println("La zone de recharge a été supprimée de la ville " + ville.getNom());
-  }
 
-  /*
-   * Méthode pour afficher un menu permettant d'ajouter ou de supprimer une route
-   */
-  public void menuAjouterSupprimerRoute() {
-    int choix;
-    do {
-      System.out.println();
-      System.out.println("1. Ajouter une route");
-      System.out.println("2. Supprimer une route");
-      System.out.println("3. Menu suivant");
-      System.out.print("Votre choix : ");
-      choix = scanner.nextInt();
-      scanner.nextLine();
-
-      if (choix == 1 || choix == 2) {
-        afficherVilles();
-        System.out.println("Vous allez ajouter ou supprimer une route entre deux villes. ");
-
-        System.out.println("Entrez le nom de la première ville : ");
-        String nomVille1 = scanner.nextLine();
-        nomVille1 = nomVille1.toUpperCase();
-        System.out.println("Entrez le nom de la deuxième ville : ");
-        String nomVille2 = scanner.nextLine();
-        nomVille2 = nomVille2.toUpperCase();
-
-        Ville v1 = null;
-        Ville v2 = null;
-
-        for (Ville ville : getVilles()) {
-          if (ville.getNom().equals(nomVille1)) {
-            System.out.println("Ville " + ville.getNom() + " trouvée");
-            v1 = ville;
-          }
-          if (ville.getNom().equals(nomVille2)) {
-            System.out.println("Ville " + ville.getNom() + " trouvée");
-            v2 = ville;
-          }
-        } // une exception a gere si les villes ne sont pas trouvees
-
-        if (choix == 1) {
-          ajouterRoute(v1, v2);
-        } else if (choix == 2) {
-          supprimerRoute(v1, v2);
-        }
-      } else if (choix == 3) {
+    public void ajouterVille(Ville ville) {
         System.out.println();
-        System.out.println("Passage au menu suivant: ");
-        return;
-      } else {
-        System.out.println("Choix non-valable");
-      }
-
-    } while (true);
-
-  }
-
-  /*
-   * Méthode pour afficher un menu permettant d'ajouter ou de supprimer une zone
-   * de recharge
-   */
-  public void menuAjouterSupprimerZoneRecharge() {
-    int choix;
-    do {
-      System.out.println("1. Ajouter une zone de recharge");
-      System.out.println("2. Supprimer une zone de recharge");
-      System.out.println("3. Quitter");
-      System.out.print("Entrez votre choix : ");
-      choix = scanner.nextInt();
-      scanner.nextLine();
-
-      if (choix == 1 || choix == 2) {
-        afficherVilles();
-        System.out.println("Vous allez ajouter ou supprimer une zone de recharge entre deux villes. ");
-
-        System.out.println("Entrez le nom de la ville : ");
-        String nomVille = scanner.nextLine();
-        nomVille = nomVille.toUpperCase();
-
-        Ville v = null;
-
-        for (Ville ville : getVilles()) {
-          if (ville.getNom().equals(nomVille)) {
-            System.out.println("Ville " + ville.getNom() + " trouvée");
-            v = ville;
-          }
-        } // une exception a gere si les villes ne sont pas trouvees
-
-        if (choix == 1) {
-          ajouterZoneRecharge(v);
-        } else if (choix == 2) {
-          supprimerZoneRecharge(v);
+        String nomVille = ville.getNom();
+        if (!nomsVilles.contains(nomVille)) {
+            this.mapVilles.put(ville, new ArrayList<Ville>());
+            nomsVilles.add(nomVille);
+            System.out.println(" * Ville créée : " + nomVille);
+        } else {
+            System.out.println(" /!/ Une ville avec le nom '" + nomVille + "' existe déjà.");
         }
-      } else if (choix == 3) {
-        System.out.println();
-        System.out.println("Quitter ");
-        return;
-      } else {
-        System.out.println("Choix non-valable");
-      }
-
-    } while (true);
-
-  }
-
-  /*
-   * Méthode pour fermer le scanner
-   */
-  public void closeScanner() {
-    if (scanner != null) {
-      scanner.close();
     }
-  }
+
+    public boolean ajouterRoute(Ville ville1, Ville ville2) {
+        if (this.mapVilles.containsKey(ville1) && this.mapVilles.containsKey(ville2)) {
+            if (!ville1.equals(ville2)) {
+                if (!this.mapVilles.get(ville1).contains(ville2) && !this.mapVilles.get(ville2).contains(ville1)) {
+                    this.mapVilles.get(ville1).add(ville2);
+                    this.mapVilles.get(ville2).add(ville1);
+                    System.out.println();
+                    System.out.println(" * Route ajoutée entre " + ville1.getNom() + " et " + ville2.getNom() + ".");
+                    return true;
+                } else {
+                    System.out.println(" /!/ Une route existe déjà entre ces deux villes.");
+                    return false;
+                }
+            } else {
+                System.out.println(" /!/ Vous ne pouvez pas ajouter de route entre une ville et elle-même.");
+                return false;
+            }
+        } else {
+            System.out.println(" /!/ Au moins l'une des deux villes n'existe pas. Impossible d'ajouter une route.");
+            System.out.println(" /!/ Il est possible que vous ayez mal écrit les majuscules ou les minuscules dans le nom de la ville.");
+            return false;
+        }
+    }
+
+    public boolean supprimerRoute(Ville ville1, Ville ville2) {
+        if (this.mapVilles.containsKey(ville1) && this.mapVilles.containsKey(ville2)) {
+            if (!ville1.equals(ville2)) {
+                if (this.mapVilles.get(ville1).contains(ville2) && this.mapVilles.get(ville2).contains(ville1)) {
+                    this.mapVilles.get(ville1).remove(ville2);
+                    this.mapVilles.get(ville2).remove(ville1);
+                    System.out.println(" * Route supprimée entre " + ville1.getNom() + " et " + ville2.getNom() + ".");
+                    return true;
+                } else {
+                    System.out.println(" /!/ Impossible de supprimer une route inexistante entre ces deux villes.");
+                    return false;
+                }
+            } else {
+                System.out.println(" /!/ Vous ne pouvez pas supprimer une route entre une ville et elle-même.");
+                return false;
+            }
+        } else {
+            System.out.println(" /!/ Au moins l'une des deux villes n'existe pas. Impossible de supprimer une route.");
+            System.out.println(" /!/ Il est possible que vous ayez mal écrit les majuscules ou les minuscules dans le nom de la ville.");
+            return false;
+        }
+    }
+
+    public List<Ville> getVillesAdjacentes(Ville ville) {
+        return this.mapVilles.get(ville);
+    }
+
+    public Ville getVille(String nomVille) {
+        for (Ville ville : this.mapVilles.keySet()) {
+            if (ville.getNom().equals(nomVille)) {
+                return ville;
+            }
+        }
+        return null;
+    }
+
+    public List<Ville> getVilles() {
+        return new ArrayList<Ville>(this.mapVilles.keySet());
+    }
+
+    public int getNombreVilles() {
+        return this.nombreVilles;
+    }
+
+    public void afficherVilles() {
+        System.out.println();
+        System.out.println("╔══════════════════════════════════════════════════════════╗");
+        System.out.println("║                  Affichages des villes                   ║");
+        System.out.println("║══════════════════════════════════════════════════════════║");
+        System.out.println("");
+        System.out.println("  Voici la liste des villes : ");
+
+        
+        int numero = 1;
+        for (Ville ville : this.mapVilles.keySet()) {
+            System.out.println("  " + numero + ". " + ville.getNom());
+            numero++;
+        }
+        System.out.println("╚══════════════════════════════════════════════════════════╝");
+    }
+
+    public void afficherRoutes() {
+        System.out.println();
+        System.out.println("╔══════════════════════════════════════════════════════════╗");
+        System.out.println("║                   Affichage des routes                   ║");
+        System.out.println("║══════════════════════════════════════════════════════════║");
+        System.out.println("");
+
+        for (Ville ville : this.mapVilles.keySet()) {
+            System.out.print("  " + ville.getNom() + " reliée à : ");
+            List<Ville> villesAdjacentes = this.mapVilles.get(ville);
+            if (villesAdjacentes.isEmpty()) {
+                System.out.println("Aucune");
+                continue;
+            }
+    
+            for (int i = 0; i < villesAdjacentes.size(); i++) {
+                System.out.print(villesAdjacentes.get(i).getNom());
+                if (i < villesAdjacentes.size() - 1) {
+                    System.out.print(", ");
+                }
+            }
+            System.out.println();
+        }
+    
+        System.out.println("╚══════════════════════════════════════════════════════════╝");
+    }
+
+    public List<Ville> getZonesRecharge() { // retourne les villes avec une zone de recharge
+        List<Ville> villesAvecZoneRecharge = new ArrayList<Ville>();
+        for (Ville ville : this.mapVilles.keySet()) {
+            if (ville.aZoneRecharge()) {
+                villesAvecZoneRecharge.add(ville);
+            }
+        }
+        return villesAvecZoneRecharge;
+    }
+
+    // getRoutes()
+    public Map<Ville, List<Ville>> getRoutes() {
+        return this.mapVilles;
+    }
+
+    public int score() {
+        int score = 0;
+        for (Ville ville : this.mapVilles.keySet()) {
+            if (ville.aZoneRecharge()) {
+                score++;
+            }
+        }
+        return score;
+    }
+
+    public boolean respecteContrainteAccessibiliteCommunaute(Set<Ville> villesAvecZone) {
+        for (Ville ville : this.mapVilles.keySet()) {
+            if (!ville.aZoneRecharge() && !estAccessible(ville, villesAvecZone)) {
+                return false; // Si une ville sans zone de recharge n'est pas accessible, la contrainte n'est pas respectée
+            }
+        }
+        return true; // Toutes les villes respectent la contrainte d'accessibilité
+    }
+
+    private boolean estAccessible(Ville ville, Set<Ville> villesAvecZone) {
+        if (villesAvecZone.contains(ville)) {
+            return true; // La ville a une zone de recharge
+        }
+
+        for (Ville villeAdjacente : getVillesAdjacentes(ville)) {
+            if (villesAvecZone.contains(villeAdjacente)) {
+                return true; // Une ville adjacente a une zone de recharge
+            }
+        }
+
+        return false; // Aucune des conditions ci-dessus n'a été satisfaite, la ville n'est pas accessible
+    }
+    
+
+    public void afficherVillesAvecZoneRecharge() {
+        System.out.println("╔══════════════════════════════════════════════════════════╗");
+        System.out.println("║       Affichage des villes avec zone de recharge         ║");
+        System.out.println("╚══════════════════════════════════════════════════════════╝");
+        
+        boolean trouver = false;
+        for (Ville ville : this.mapVilles.keySet()) {
+            if (ville.aZoneRecharge()) {
+                System.out.println("  - " + ville.getNom());
+                trouver = true;
+            }
+        }
+
+        if (!trouver) {
+            System.out.println("  Aucune ville avec une zone de recharge.");
+        }
+
+        System.out.println("╚══════════════════════════════════════════════════════════╝");
+    }
+
+    public boolean ajouterZoneRecharge(Ville ville) {
+        System.out.println();
+        if (!ville.aZoneRecharge()) {
+            ville.setZoneRecharge(true);
+            System.out.println(" * Zone de recharge ajoutée à la ville " + ville.getNom());
+            return true;
+        } else {
+            System.out.println(" /!/ La ville " + ville.getNom() + " possède déjà une zone de recharge.");
+            return false;
+        }
+    }
+
+    public boolean respecteContrainteAccessibiliteCommunaute() {
+        for (Ville ville : mapVilles.keySet()) {
+            if (!respecteContrainteAccessibilite(ville)) {
+                return false; // Si au moins une ville ne respecte pas la contrainte, la communauté ne la respecte pas non plus
+            }
+        }
+        return true; // Toutes les villes respectent la contrainte d'accessibilité
+    }
+    
+    public boolean respecteContrainteAccessibilite(Ville ville) {
+        if (ville.aZoneRecharge()) {
+            return true; // Une ville avec une zone de recharge respecte la contrainte
+        }
+    
+        for (Ville villeAdjacente : getVillesAdjacentes(ville)) {
+            if (villeAdjacente.aZoneRecharge()) {
+                return true; // Si une ville adjacente a une zone de recharge, la contrainte est respectée
+            }
+        }
+    
+        return false; // Aucune des conditions ci-dessus n'a été satisfaite, la contrainte n'est pas respectée
+    }
+    
+
+    public int nombreZonesRechargeAdjacents(Ville ville) {
+        int nombreZonesRechargeAdjacents = 0;
+        for (Ville villeAdjacente : getVillesAdjacentes(ville)) {
+            if (villeAdjacente.aZoneRecharge()) {
+                nombreZonesRechargeAdjacents++;
+            }
+        }
+        return nombreZonesRechargeAdjacents;
+    }
+
+    /*
+     * Methodes pour ajouter ou supprimer une zone de recharge
+     * @param ville de type Ville : la ville à laquelle on veut ajouter ou supprimer une zone de recharge
+     * @return : void 
+     */
+    public void supprimerZoneRecharge(Ville ville){
+        boolean condition1Check = false;
+        boolean condition2Check = false;
+        boolean condition3Check = false;
+        boolean condition3FinalCheck = false;
+        boolean apresSuppression = false;
+
+        if (!ville.aZoneRecharge()) {
+            System.out.println(" /!/ Vous ne pouvez pas supprimer une zone de recharge qui n'existe pas !");
+            return;
+        }
+
+        //si une ville est isolée et qu'elle a une zone de recharge, on ne peut pas la supprimer
+        if (getVillesAdjacentes(ville).isEmpty()) {
+            System.out.println(" /!/ Vous ne pouvez pas supprimer une zone de recharge d'une ville isolée !");
+            return;
+        }
+
+        // si tous les voisins de la ville en question ont une zone de recharge, on peut supprimer la zone de recharge
+        // et condition1Check devient true
+        for (Ville v : getVillesAdjacentes(ville)) {
+            if (v.aZoneRecharge()) {
+                condition1Check = true;
+                System.out.println(" /!/ Vous pouvez supprimer cette zone de recharge car tous les voisins de la ville en question ont une zone de recharge.");
+            } else {
+                condition1Check = false;
+                break;
+            }
+        }
+
+        // maintenant les cas ou au moins un voisin de la ville en question n'a pas de zone de recharge
+
+        // si un voisin de la ville en question n'a pas une zone de recharge et n'a aucun voisin, donc il dépend
+        // forcément de la ville en question, donc on ne peut pas supprimer la zone de recharge de la ville en question
+        // cela est pour tous les voisins de la ville en question
+        // et dès que cette vérification est faite pour tous les voisins, condition2Check devient true
+        for (Ville v : getVillesAdjacentes(ville)) {
+            if (!v.aZoneRecharge() && getVillesAdjacentes(v).isEmpty()) {
+                condition2Check = false;
+                System.out.println(" /!/ Vous ne pouvez pas supprimer cette zone de recharge car un des voisins de la ville en question est isolé et dépend de cette ville.");
+                break;
+            } else {
+                condition2Check = true;
+            }
+        }
+
+        // si au moins un voisins de la ville en question n'a pas de zone de recharge, on parcourt les voisins de ce voisin pour 
+        //trouver une ville qui a une zone de recharge. Si on en trouve une, on peut supprimer la zone de recharge de la ville en question
+        //et condition2Check devient true dès qu'on vérifie cela pour tous les voisins sans zone de recharge
+        //on ne prend pas en compte la ville en question quand on vérifie les voisins des voisins
+        for (Ville v : getVillesAdjacentes(ville)) {
+            if (!v.aZoneRecharge()) {
+                for (Ville v2 : getVillesAdjacentes(v)) {
+                    if (v2.aZoneRecharge() && (v2.getNom()).equals(ville.getNom()) == false) {
+                        condition3Check = true;
+                        break;
+                    }
+                }
+            }
+            if (condition3Check) {
+                condition3FinalCheck = true;
+            }   
+            else { //ce voisin n'a pas de voisins avec une zone de recharge, donc on ne peut pas supprimer la zone de recharge de la ville en question
+                condition3FinalCheck = false;
+                System.out.println(" /!/ Vous ne pouvez pas supprimer cette zone de recharge car un des voisins de la ville en question n'a pas de voisins avec une zone de recharge.");
+                break;
+            }
+
+        }
+
+        if (condition1Check || (condition2Check && condition3FinalCheck)) {
+            ville.setZoneRecharge(false);
+            System.out.println(" * La zone de recharge a été supprimée de la ville " + ville.getNom());
+        } else {
+            System.out.println(" /!/ Vous ne pouvez pas supprimer cette zone de recharge car la ville n'est pas connectée à une autre ville avec une zone de recharge.");
+        }
+
+        //Enfin, si après supprésion de la zone de recharge, si la ville en question n'est connéctée à aucune autre ville avec une zone de recharge,
+        //la zone de recharge est rétablie
+        if (condition1Check || (condition2Check && condition3FinalCheck)) {
+            for (Ville v : getVillesAdjacentes(ville)) {
+                if (v.aZoneRecharge()) {
+                    apresSuppression = true;
+                    break;
+                }
+            }
+            if (!apresSuppression) {
+                ville.setZoneRecharge(true);
+                System.out.println(" /!/ La zone de recharge a été rétablie pour la ville " + ville.getNom() + " car elle devenue isolée après la suppression. Donc ce n'est pas possible finalement");
+            }
+        }
+    }
+    
 
 }
