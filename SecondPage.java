@@ -24,8 +24,11 @@ public class SecondPage {
     private final CommunauteAgglomeration communaute;
     private Map<String, Circle> villeCircles;
     private CommunauteFileManager fileManager;
+    private double initialTranslateX;
+    private double initialTranslateY;
+    private double initialMouseX;
+    private double initialMouseY;
 
-    // Constructeur de la classe
     public SecondPage(Stage primaryStage, Scene mainScene, CommunauteAgglomeration communaute) {
         this.primaryStage = primaryStage;
         this.mainScene = mainScene;
@@ -33,7 +36,6 @@ public class SecondPage {
         this.villeCircles = new HashMap<>();
         this.fileManager = new CommunauteFileManager(communaute);
     }
-
 
     // Méthode pour afficher la deuxième page
     public void show() {
@@ -69,21 +71,36 @@ public class SecondPage {
     private Pane createStyledPane(double width, double height) {
         Pane pane = new Pane();
         pane.setMinSize(width, height);
-        pane.setStyle("-fx-background-color: #F5F1ED; -fx-border-color: #cccccc; -fx-border-width: 1;");
+        pane.setStyle("-fx-background-color: #A89B9D; -fx-border-color: #cccccc; -fx-border-width: 1;");
         pane.setEffect(new DropShadow(5, Color.VIOLET));
-    
+
         // Ajout de la fonctionnalité de zoom
-        pane.setOnScroll(event -> {
-            double zoomFactor = 1.05;
-            double deltaY = event.getDeltaY();
-            if (deltaY < 0) {
-                zoomFactor = 2.0 - zoomFactor;
-            }
-            pane.setScaleX(pane.getScaleX() * zoomFactor);
-            pane.setScaleY(pane.getScaleY() * zoomFactor);
-            event.consume();
-        });
-    
+    pane.setOnScroll(event -> {
+        double zoomFactor = 1.05;
+        double deltaY = event.getDeltaY();
+        if (deltaY < 0) {
+            zoomFactor = 1 / zoomFactor;
+        }
+        pane.setScaleX(pane.getScaleX() * zoomFactor);
+        pane.setScaleY(pane.getScaleY() * zoomFactor);
+        event.consume();
+    });
+
+    // Ajout de la fonctionnalité de glissement (panning)
+    pane.setOnMousePressed(event -> {
+        // Coordonnées initiales pour le déplacement
+        initialTranslateX = pane.getTranslateX();
+        initialTranslateY = pane.getTranslateY();
+        initialMouseX = event.getSceneX();
+        initialMouseY = event.getSceneY();
+    });
+
+    pane.setOnMouseDragged(event -> {
+        // Déplacer le Pane en fonction de la différence de position de la souris
+        pane.setTranslateX(initialTranslateX + event.getSceneX() - initialMouseX);
+        pane.setTranslateY(initialTranslateY + event.getSceneY() - initialMouseY);
+    });
+
         return pane;
     }
 
@@ -127,6 +144,15 @@ public class SecondPage {
         });
 
         buttonBox.getChildren().addAll(manuelButton, fichierButton);
+    }
+
+    // Méthode pour calculer le rayon optimal
+    private double calculateOptimalRadius(int numberOfCities, Pane graphPane) {
+        double baseRadius = graphPane.getWidth() / 4; // Utilisez un quart de la largeur du Pane comme base
+        double radiusIncrement = 20; // L'augmentation du rayon pour chaque ville supplémentaire
+        double maxRadius = Math.min(graphPane.getWidth(), graphPane.getHeight()) / 2 - 50; // Limite maximale
+        double dynamicRadius = baseRadius + (numberOfCities - 1) * radiusIncrement;
+        return Math.min(dynamicRadius, maxRadius);
     }
 
     private void saisieManuelle(Pane graphPane, TextArea terminalOutputPane, HBox buttonBox) {
@@ -400,7 +426,6 @@ public class SecondPage {
         }
     }
 
-    // Cette méthode affiche le graphique
     // Méthode pour afficher le graphique
     private void displayGraph(Pane graphPane, TextArea terminalOutputPane) {
         terminalOutputPane.appendText("Affichage du graphe...\n");
@@ -409,15 +434,16 @@ public class SecondPage {
 
         List<Ville> villes = communaute.getVilles();
 
+        // Ajustez le rayon en fonction de la taille du Pane et du nombre de villes.
+        double radius = calculateOptimalRadius(villes.size(), graphPane);
+
         // Centre du cercle
         double centerX = graphPane.getWidth() / 2;
         double centerY = graphPane.getHeight() / 2;
-        double radius = Math.min(centerX, centerY) - 20; // Rayon du cercle sur lequel les villes seront placées
         double angleStep = 360.0 / villes.size();
 
-        // Pour répartir les villes uniformément autour du cercle, vous pouvez décaler
-        // l'angle initial
-        double initialAngle = -90.0; // Commencez à partir du haut (12 heures sur une horloge)
+        // Pour répartir les villes uniformément autour du cercle
+        double initialAngle = -90.0; // Commencez à partir du haut
 
         for (int i = 0; i < villes.size(); i++) {
             Ville ville = villes.get(i);
@@ -427,27 +453,31 @@ public class SecondPage {
             double x = centerX + radius * Math.cos(Math.toRadians(angle));
             double y = centerY + radius * Math.sin(Math.toRadians(angle));
 
-            Circle circle = new Circle(x, y, 20); // Créez un cercle de rayon 20 pour la ville
+            // La taille du cercle et de l'étiquette peut être ajustée en fonction du nombre
+            // de villes
+            double circleRadius = Math.max(10, 30 - 0.5 * villes.size());
+            Circle circle = new Circle(x, y, circleRadius);
+            circle.setFill(ville.aZoneRecharge() ? Color.GREEN : Color.BLUE);
 
-            // Ici, nous mettons à jour la couleur du cercle en fonction de l'état de la
-            // zone de recharge de la ville
-            Color color = ville.aZoneRecharge() ? Color.GREEN : Color.BLUE;
-            circle.setFill(color);
-
+            int fontSize = (int) Math.max(10, 24 - 0.2 * villes.size());
             Label label = new Label(ville.getNom());
-            label.setFont(new Font("Arial", 24)); // Taille de police plus grande pour une meilleure visibilité
-            label.setTextFill(Color.RED); // Couleur de texte rouge pour les noms des villes
-            label.setEffect(new DropShadow(1, Color.BLACK)); // Ombre portée pour améliorer la lisibilité
+            label.setFont(new Font("Arial", fontSize));
+            label.setTextFill(Color.RED);
+            label.setEffect(new DropShadow(1, Color.BLACK));
 
             // Centrez le texte dans le cercle
             label.layoutXProperty().bind(circle.centerXProperty().subtract(label.widthProperty().divide(2)));
-            label.layoutYProperty().bind(circle.centerYProperty().subtract(label.heightProperty().divide(2).add(10)));
+            label.layoutYProperty().bind(circle.centerYProperty().subtract(label.heightProperty().divide(2)));
 
             graphPane.getChildren().addAll(circle, label);
             villeCircles.put(ville.getNom(), circle);
         }
 
-        // Dessiner les routes à partir de routesFromFile
+        // Dessiner les routes
+        drawRoutes(graphPane);
+    }
+
+    private void drawRoutes(Pane graphPane) {
         for (Pair<String, String> routeInfo : CommunauteFileManager.getRoutesFromFile()) {
             String ville1Name = routeInfo.getKey();
             String ville2Name = routeInfo.getValue();
@@ -459,5 +489,4 @@ public class SecondPage {
             }
         }
     }
-
 }
