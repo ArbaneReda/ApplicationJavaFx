@@ -34,11 +34,12 @@ public class SecondPage {
         this.fileManager = new CommunauteFileManager(communaute);
     }
 
+
     // Méthode pour afficher la deuxième page
     public void show() {
         BorderPane borderPane = new BorderPane();
         borderPane.setPadding(new Insets(15));
-        borderPane.setStyle("-fx-background-color: #FAFAFA;");
+        borderPane.setStyle("-fx-background-color: #252323;");
 
         Pane graphPane = createStyledPane(600, 400);
         TextArea terminalOutputPane = createTextArea();
@@ -52,10 +53,9 @@ public class SecondPage {
 
         Button startButton = createButton("Commencer", "#4CAF50");
         Button backButton = createButton("Retourner", "#6c7ae0");
-        
+
         startButton.setOnAction(e -> handleStart(graphPane, terminalOutputPane, buttonBox));
         backButton.setOnAction(e -> primaryStage.setScene(mainScene));
-        
 
         buttonBox.getChildren().addAll(startButton, backButton);
         borderPane.setBottom(buttonBox);
@@ -69,8 +69,21 @@ public class SecondPage {
     private Pane createStyledPane(double width, double height) {
         Pane pane = new Pane();
         pane.setMinSize(width, height);
-        pane.setStyle("-fx-background-color: #ffffff; -fx-border-color: #cccccc; -fx-border-width: 1;");
-        pane.setEffect(new DropShadow(5, Color.GREY));
+        pane.setStyle("-fx-background-color: #F5F1ED; -fx-border-color: #cccccc; -fx-border-width: 1;");
+        pane.setEffect(new DropShadow(5, Color.VIOLET));
+    
+        // Ajout de la fonctionnalité de zoom
+        pane.setOnScroll(event -> {
+            double zoomFactor = 1.05;
+            double deltaY = event.getDeltaY();
+            if (deltaY < 0) {
+                zoomFactor = 2.0 - zoomFactor;
+            }
+            pane.setScaleX(pane.getScaleX() * zoomFactor);
+            pane.setScaleY(pane.getScaleY() * zoomFactor);
+            event.consume();
+        });
+    
         return pane;
     }
 
@@ -100,18 +113,19 @@ public class SecondPage {
     // Méthode pour gérer le début du programme
     private void handleStart(Pane graphPane, TextArea terminalOutputPane, HBox buttonBox) {
         buttonBox.getChildren().clear(); // Nettoyer les boutons existants
-    
+
         Button manuelButton = createButton("Manuellement", "#4CAF50");
         Button fichierButton = createButton("Fichier", "#2196F3");
-    
+
         manuelButton.setOnAction(e -> saisieManuelle(graphPane, terminalOutputPane, buttonBox));
         fichierButton.setOnAction(e -> {
             fileManager.ouvrirFichierCommunaute(primaryStage);
-            // Après avoir lu les données du fichier, appelez displayGraph pour afficher les villes
-            showRoutesMenu(buttonBox, graphPane, terminalOutputPane,true);
+            // Après avoir lu les données du fichier, appelez displayGraph pour afficher les
+            // villes
+            showRoutesMenu(buttonBox, graphPane, terminalOutputPane, true);
             displayGraph(graphPane, terminalOutputPane);
         });
-    
+
         buttonBox.getChildren().addAll(manuelButton, fichierButton);
     }
 
@@ -120,18 +134,15 @@ public class SecondPage {
         numberDialog.setTitle("Nombre de villes");
         numberDialog.setHeaderText("Création des villes");
         numberDialog.setContentText("Entrez le nombre de villes :");
-    
+
         Optional<String> numberResult = numberDialog.showAndWait();
         numberResult.ifPresent(number -> {
             try {
                 int nbVilles = Integer.parseInt(number);
-                char villeName = 'A';
-                for (int i = 0; i < nbVilles; i++) {
-                    String nomVille = String.valueOf((char) (villeName + i));
-                    communaute.ajouterVille(new Ville(nomVille));
-                }
+                ajouterVillesAutomatiquement(communaute, nbVilles); // Utilisez la méthode pour ajouter automatiquement
+                                                                    // les villes
                 terminalOutputPane.appendText("Villes créées : " + nbVilles + "\n");
-    
+
                 if (!communaute.getVilles().isEmpty()) {
                     showRoutesMenu(buttonBox, graphPane, terminalOutputPane, true);
                 } else {
@@ -146,24 +157,33 @@ public class SecondPage {
             }
         });
     }
-    
+
+    private void ajouterVillesAutomatiquement(CommunauteAgglomeration communaute, int nombreVilles) {
+        for (int i = 0; i < nombreVilles; i++) {
+            char lettre = (char) ('A' + (i % 26));
+            int indice = (i / 26) + 1;
+            String nomVille = lettre + String.valueOf(indice);
+            Ville ville = new Ville(nomVille);
+            communaute.ajouterVille(ville);
+        }
+    }
 
     // Méthode pour mettre à jour l'interface utilisateur pour les routes
     private void showRoutesMenu(HBox buttonBox, Pane graphPane, TextArea terminalOutputPane, boolean clearGraph) {
         buttonBox.getChildren().clear();
-    
+
         Button addRouteButton = createButton("Ajouter une route", "#2196F3");
         Button removeRouteButton = createButton("Supprimer une route", "#F44336");
         Button nextMenuButton = createButton("Menu Suivant", "#FFA500");
         Button quitButton = createButton("Quitter", "#9E9E9E");
-    
+
         addRouteButton.setOnAction(e -> addRoute(graphPane));
         removeRouteButton.setOnAction(e -> removeRoute(graphPane));
         nextMenuButton.setOnAction(e -> showRechargeZoneMenu(graphPane, terminalOutputPane, buttonBox));
         quitButton.setOnAction(e -> primaryStage.setScene(mainScene));
-    
+
         buttonBox.getChildren().addAll(addRouteButton, removeRouteButton, nextMenuButton, quitButton);
-    
+
         // Afficher le graphe seulement si nécessaire
         if (clearGraph) {
             displayGraph(graphPane, terminalOutputPane);
@@ -197,13 +217,13 @@ public class SecondPage {
         dialog.setTitle("Ajouter une route");
         dialog.setHeaderText("Sélectionnez la première ville:");
         Optional<Ville> result = dialog.showAndWait();
-    
+
         result.ifPresent(ville1 -> {
             ChoiceDialog<Ville> dialog2 = new ChoiceDialog<>(villes.get(1), villes);
             dialog2.setTitle("Ajouter une route");
             dialog2.setHeaderText("Sélectionnez la deuxième ville:");
             Optional<Ville> result2 = dialog2.showAndWait();
-    
+
             result2.ifPresent(ville2 -> {
                 if (ville1.equals(ville2)) {
                     showAlert("Erreur d'ajout de route",
@@ -220,8 +240,6 @@ public class SecondPage {
             });
         });
     }
-    
-    
 
     // Méthode pour supprimer une route
     private void removeRoute(Pane graphPane) {
@@ -307,44 +325,50 @@ public class SecondPage {
         dialog.setHeaderText("Sélectionnez une ville:");
         Optional<Ville> result = dialog.showAndWait();
 
-        // si une ville n'a pas de voisin, c'est à dire qu'elle est isolée, on ne peut pas supprimer sa zone de recharge
-        
-    
+        // si une ville n'a pas de voisin, c'est à dire qu'elle est isolée, on ne peut
+        // pas supprimer sa zone de recharge
+
         result.ifPresent(ville -> { // ifPresent() est appelé si l'utilisateur a sélectionné une ville
             if (!ville.aZoneRecharge()) {
                 showAlert("Suppression de zone de recharge",
                         "La ville " + ville.getNom() + " n'a pas de zone de recharge à supprimer.");
                 return;
             }
-             // si une ville n'a pas de voisin, c'est à dire qu'elle est isolée, on ne peut pas supprimer sa zone de recharge
+            // si une ville n'a pas de voisin, c'est à dire qu'elle est isolée, on ne peut
+            // pas supprimer sa zone de recharge
             if (communaute.getVillesAdjacentes(ville).isEmpty()) {
                 showAlert("Suppression de zone de recharge",
-                        "Vous ne pouvez pas supprimer la zone de recharge de " + ville.getNom() + 
-                        " car la ville est isolée.");
+                        "Vous ne pouvez pas supprimer la zone de recharge de " + ville.getNom() +
+                                " car la ville est isolée.");
                 return;
             }
 
-            // On vérifie si la suppression de la zone de recharge de 'ville' isole une ville voisine
+            // On vérifie si la suppression de la zone de recharge de 'ville' isole une
+            // ville voisine
             for (Ville voisine : communaute.getVillesAdjacentes(ville)) {
-                // Si 'voisine' n'a pas de zone de recharge et que toutes les villes adjacentes à 'voisine', sauf 'ville',
-                // n'ont pas de zone de recharge, alors on ne peut pas supprimer la zone de recharge de 'ville'
-                if (!voisine.aZoneRecharge() && communaute.getVillesAdjacentes(voisine).stream() // .stream() est utilisé pour convertir la liste en flux
+                // Si 'voisine' n'a pas de zone de recharge et que toutes les villes adjacentes
+                // à 'voisine', sauf 'ville',
+                // n'ont pas de zone de recharge, alors on ne peut pas supprimer la zone de
+                // recharge de 'ville'
+                if (!voisine.aZoneRecharge() && communaute.getVillesAdjacentes(voisine).stream() // .stream() est
+                                                                                                 // utilisé pour
+                                                                                                 // convertir la liste
+                                                                                                 // en flux
                         .filter(v -> !v.equals(ville)) // On exclut 'ville' de la vérification
                         .noneMatch(Ville::aZoneRecharge)) { // renvoie true si aucune ville n'a de zone de recharge
                     showAlert("Suppression de zone de recharge",
-                            "Vous ne pouvez pas supprimer la zone de recharge de " + ville.getNom() + 
-                            " car la ville " + voisine.getNom() + " serait isolée.");
+                            "Vous ne pouvez pas supprimer la zone de recharge de " + ville.getNom() +
+                                    " car la ville " + voisine.getNom() + " serait isolée.");
                     return;
                 }
             }
-    
+
             // Si la vérification est passée, on peut supprimer la zone de recharge
             ville.setZoneRecharge(false);
             updateCircleColor(ville, Color.BLUE);
             showAlert("Zone de recharge", "Zone de recharge supprimée pour la ville " + ville.getNom() + ".");
         });
     }
-
 
     // Cette méthode met à jour la couleur du cercle représentant la ville
     private void updateCircleColor(Ville ville, Color color) {
@@ -377,7 +401,7 @@ public class SecondPage {
     }
 
     // Cette méthode affiche le graphique
-    // Cette méthode affiche le graphique
+    // Méthode pour afficher le graphique
     private void displayGraph(Pane graphPane, TextArea terminalOutputPane) {
         terminalOutputPane.appendText("Affichage du graphe...\n");
 
@@ -388,14 +412,18 @@ public class SecondPage {
         // Centre du cercle
         double centerX = graphPane.getWidth() / 2;
         double centerY = graphPane.getHeight() / 2;
-        double radius = Math.min(centerX, centerY) - 50; // Rayon du cercle sur lequel les villes seront placées
+        double radius = Math.min(centerX, centerY) - 20; // Rayon du cercle sur lequel les villes seront placées
         double angleStep = 360.0 / villes.size();
+
+        // Pour répartir les villes uniformément autour du cercle, vous pouvez décaler
+        // l'angle initial
+        double initialAngle = -90.0; // Commencez à partir du haut (12 heures sur une horloge)
 
         for (int i = 0; i < villes.size(); i++) {
             Ville ville = villes.get(i);
 
             // Calcul des coordonnées x et y pour positionner la ville
-            double angle = angleStep * i;
+            double angle = initialAngle + angleStep * i;
             double x = centerX + radius * Math.cos(Math.toRadians(angle));
             double y = centerY + radius * Math.sin(Math.toRadians(angle));
 
@@ -421,16 +449,15 @@ public class SecondPage {
 
         // Dessiner les routes à partir de routesFromFile
         for (Pair<String, String> routeInfo : CommunauteFileManager.getRoutesFromFile()) {
-        String ville1Name = routeInfo.getKey();
-        String ville2Name = routeInfo.getValue();
-        Ville ville1 = communaute.getVille(ville1Name);
-        Ville ville2 = communaute.getVille(ville2Name);
+            String ville1Name = routeInfo.getKey();
+            String ville2Name = routeInfo.getValue();
+            Ville ville1 = communaute.getVille(ville1Name);
+            Ville ville2 = communaute.getVille(ville2Name);
 
-        if (ville1 != null && ville2 != null) {
-            drawRoute(graphPane, ville1, ville2);
+            if (ville1 != null && ville2 != null) {
+                drawRoute(graphPane, ville1, ville2);
+            }
         }
     }
-    }
-
 
 }
