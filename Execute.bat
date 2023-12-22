@@ -11,3 +11,5 @@ javac --module-path "%LIB_PATH%" --add-modules javafx.controls,javafx.fxml -enco
 
 rem Run the compiled Java program with UTF-8 encoding
 java --module-path "%LIB_PATH%" --add-modules javafx.controls,javafx.fxml -Dfile.encoding=UTF-8 -cp "%BIN_PATH%" App
+
+pause
