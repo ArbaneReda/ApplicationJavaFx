@@ -7,7 +7,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 
-public class app extends Application {
+public class App extends Application {
 
     public void start(Stage primaryStage) {
         // Chargez l'image de fond depuis le fichier
