@@ -1,3 +1,4 @@
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -7,37 +8,56 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.util.Pair;
 import javafx.scene.text.Font;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import javafx.scene.Node;
 
+/**
+ * Cette classe est la deuxième page de l'application, elle contient les
+ * méthodes pour afficher les villes et les routes, et pour gérer les actions de
+ * l'utilisateur.
+ */
 public class SecondPage {
 
     private final Stage primaryStage;
     private final Scene mainScene;
     private final CommunauteAgglomeration communaute;
     private Map<String, Circle> villeCircles;
-    private CommunauteFileManager fileManager;
+    private GestionFichier fileManager;
     private double initialTranslateX;
     private double initialTranslateY;
     private double initialMouseX;
     private double initialMouseY;
 
+    /**
+     * Constructeur de la classe SecondPage.
+     * 
+     * @param primaryStage : la fenêtre principale de l'application.
+     * @param mainScene    : la scène principale de l'application.
+     * @param communaute   : la communauté d'agglomération.
+     */
     public SecondPage(Stage primaryStage, Scene mainScene, CommunauteAgglomeration communaute) {
         this.primaryStage = primaryStage;
         this.mainScene = mainScene;
         this.communaute = communaute;
         this.villeCircles = new HashMap<>();
-        this.fileManager = new CommunauteFileManager(communaute);
+        this.fileManager = new GestionFichier(communaute);
     }
 
-    // Méthode pour afficher la deuxième page
+    /**
+     * Méthode pour afficher la deuxième page de l'application.
+     * 
+     * @param : void
+     * @return : void
+     */
     public void show() {
         BorderPane borderPane = new BorderPane();
         borderPane.setPadding(new Insets(15));
@@ -67,7 +87,12 @@ public class SecondPage {
         primaryStage.show();
     }
 
-    // Méthode pour créer un Pane avec un style CSS personnalisé
+    /**
+     * Méthode pour créer un Pane avec un style CSS personnalisé.
+     * @param width
+     * @param height
+     * @return Pane
+     */
     private Pane createStyledPane(double width, double height) {
         Pane pane = new Pane();
         pane.setMinSize(width, height);
@@ -75,36 +100,40 @@ public class SecondPage {
         pane.setEffect(new DropShadow(5, Color.VIOLET));
 
         // Ajout de la fonctionnalité de zoom
-    pane.setOnScroll(event -> {
-        double zoomFactor = 1.05;
-        double deltaY = event.getDeltaY();
-        if (deltaY < 0) {
-            zoomFactor = 1 / zoomFactor;
-        }
-        pane.setScaleX(pane.getScaleX() * zoomFactor);
-        pane.setScaleY(pane.getScaleY() * zoomFactor);
-        event.consume();
-    });
+        pane.setOnScroll(event -> {
+            double zoomFactor = 1.05;
+            double deltaY = event.getDeltaY();
+            if (deltaY < 0) {
+                zoomFactor = 1 / zoomFactor;
+            }
+            pane.setScaleX(pane.getScaleX() * zoomFactor);
+            pane.setScaleY(pane.getScaleY() * zoomFactor);
+            event.consume();
+        });
 
-    // Ajout de la fonctionnalité de glissement (panning)
-    pane.setOnMousePressed(event -> {
-        // Coordonnées initiales pour le déplacement
-        initialTranslateX = pane.getTranslateX();
-        initialTranslateY = pane.getTranslateY();
-        initialMouseX = event.getSceneX();
-        initialMouseY = event.getSceneY();
-    });
+        // Ajout de la fonctionnalité de glissement (panning)
+        pane.setOnMousePressed(event -> {
+            // Coordonnées initiales pour le déplacement
+            initialTranslateX = pane.getTranslateX();
+            initialTranslateY = pane.getTranslateY();
+            initialMouseX = event.getSceneX();
+            initialMouseY = event.getSceneY();
+        });
 
-    pane.setOnMouseDragged(event -> {
-        // Déplacer le Pane en fonction de la différence de position de la souris
-        pane.setTranslateX(initialTranslateX + event.getSceneX() - initialMouseX);
-        pane.setTranslateY(initialTranslateY + event.getSceneY() - initialMouseY);
-    });
+        pane.setOnMouseDragged(event -> {
+            // Déplacer le Pane en fonction de la différence de position de la souris
+            pane.setTranslateX(initialTranslateX + event.getSceneX() - initialMouseX);
+            pane.setTranslateY(initialTranslateY + event.getSceneY() - initialMouseY);
+        });
 
         return pane;
     }
 
-    // Méthode pour créer une zone de texte avec un style CSS personnalisé
+    /**
+     * Méthode pour créer un TextArea avec un style CSS personnalisé.
+     * @param : void
+     * @return : TextArea
+     */
     private TextArea createTextArea() {
         TextArea textArea = new TextArea();
         textArea.setEditable(false);
@@ -115,7 +144,12 @@ public class SecondPage {
         return textArea;
     }
 
-    // Méthode pour créer un bouton avec un style CSS personnalisé
+    /**
+     * Méthode pour afficher les villes et les routes dans le Pane.
+     * @param text
+     * @param color
+     * @return Button
+     */
     private Button createButton(String text, String color) {
         Button button = new Button(text);
         button.setFont(new Font("Arial", 16));
@@ -127,7 +161,13 @@ public class SecondPage {
         return button;
     }
 
-    // Méthode pour gérer le début du programme
+    /**
+     * Gère le bouton de démarrage.
+     * @param graphPane
+     * @param terminalOutputPane
+     * @param buttonBox
+     * @return void
+     */
     private void handleStart(Pane graphPane, TextArea terminalOutputPane, HBox buttonBox) {
         buttonBox.getChildren().clear(); // Nettoyer les boutons existants
 
@@ -136,17 +176,26 @@ public class SecondPage {
 
         manuelButton.setOnAction(e -> saisieManuelle(graphPane, terminalOutputPane, buttonBox));
         fichierButton.setOnAction(e -> {
-            fileManager.ouvrirFichierCommunaute(primaryStage);
-            // Après avoir lu les données du fichier, appelez displayGraph pour afficher les
-            // villes
-            showRoutesMenu(buttonBox, graphPane, terminalOutputPane, true);
-            displayGraph(graphPane, terminalOutputPane);
+            File selectedFile = this.fileManager.ouvrirFichierCommunaute(primaryStage);
+            if (selectedFile != null) {
+                showRoutesMenu(buttonBox, graphPane, terminalOutputPane, true);
+                displayGraph(graphPane, terminalOutputPane);
+            } else {
+                // Si aucun fichier n'est sélectionné, afficher une alerte ou simplement ne rien
+                // faire
+                showAlert("Aucun fichier sélectionné", "Aucun fichier n'a été sélectionné.");
+            }
         });
 
         buttonBox.getChildren().addAll(manuelButton, fichierButton);
     }
 
-    // Méthode pour calculer le rayon optimal
+    /**
+     * Calcule le rayon optimal pour afficher les cercles des villes.
+     * @param numberOfCities
+     * @param graphPane
+     * @return double
+     */
     private double calculateOptimalRadius(int numberOfCities, Pane graphPane) {
         double baseRadius = graphPane.getWidth() / 4; // Utilisez un quart de la largeur du Pane comme base
         double radiusIncrement = 20; // L'augmentation du rayon pour chaque ville supplémentaire
@@ -155,6 +204,13 @@ public class SecondPage {
         return Math.min(dynamicRadius, maxRadius);
     }
 
+    /**
+     * Affiche le menu de saisie manuelle.
+     * @param graphPane
+     * @param terminalOutputPane
+     * @param buttonBox
+     * @return void
+     */
     private void saisieManuelle(Pane graphPane, TextArea terminalOutputPane, HBox buttonBox) {
         TextInputDialog numberDialog = new TextInputDialog();
         numberDialog.setTitle("Nombre de villes");
@@ -184,6 +240,12 @@ public class SecondPage {
         });
     }
 
+    /**
+     * Ajoute automatiquement des villes à la communauté d'agglomération.
+     * @param communaute
+     * @param nombreVilles
+     * @return void
+     */
     private void ajouterVillesAutomatiquement(CommunauteAgglomeration communaute, int nombreVilles) {
         for (int i = 0; i < nombreVilles; i++) {
             char lettre = (char) ('A' + (i % 26));
@@ -194,7 +256,14 @@ public class SecondPage {
         }
     }
 
-    // Méthode pour mettre à jour l'interface utilisateur pour les routes
+    /**
+     * Affiche le menu des routes.
+     * @param buttonBox
+     * @param graphPane
+     * @param terminalOutputPane
+     * @param clearGraph
+     * @return void
+     */
     private void showRoutesMenu(HBox buttonBox, Pane graphPane, TextArea terminalOutputPane, boolean clearGraph) {
         buttonBox.getChildren().clear();
 
@@ -216,7 +285,13 @@ public class SecondPage {
         }
     }
 
-    // Méthode pour afficher le menu de la zone de recharge
+    /**
+     * Affiche le menu des zones de recharge.
+     * @param graphPane
+     * @param terminalOutputPane
+     * @param buttonBox
+     * @return void
+     */
     private void showRechargeZoneMenu(Pane graphPane, TextArea terminalOutputPane, HBox buttonBox) {
         // Nettoyer l'interface utilisateur actuelle
         buttonBox.getChildren().clear();
@@ -225,6 +300,7 @@ public class SecondPage {
         // boutons pour les actions de la zone de recharge
         Button addRechargeZoneButton = createButton("Ajouter une zone de recharge", "#4CAF50");
         Button removeRechargeZoneButton = createButton("Supprimer une zone de recharge", "#F44336");
+        Button optimizeButton = createButton("Optimiser les zones de recharge", "#FF5722");
         Button backButton = createButton("Retour", "#6c7ae0");
 
         addRechargeZoneButton.setOnAction(e -> addRechargeZone(graphPane));
@@ -233,10 +309,81 @@ public class SecondPage {
 
         backButton.setOnAction(e -> showRoutesMenu(buttonBox, graphPane, terminalOutputPane, false));
 
+        optimizeButton.setOnAction(e -> {
+            // Assurez-vous que la méthode algorithmeOptimiser est statique ou créez une
+            // instance de la classe Algorithme*
+            Algorithmes.algorithmeOptimiser(communaute); // Appel de la méthode d'optimisation depuis la classe
+                                                         // Algorithme
+            updateVilleCircles();
+            terminalOutputPane.appendText("Optimisation terminée. Nombre de zones de recharge: "
+                    + communaute.getZonesRecharge().size() + "\n"); // Supposant que vous avez une méthode pour obtenir
+
+            showSaveQuitMenu(graphPane, terminalOutputPane, buttonBox);// les zones
+        });
+
         // Ajouter les nouveaux boutons à la HBox
-        buttonBox.getChildren().addAll(addRechargeZoneButton, removeRechargeZoneButton, backButton);
+        buttonBox.getChildren().addAll(addRechargeZoneButton, removeRechargeZoneButton, optimizeButton, backButton);
     }
 
+    /**
+     * Met à jour les cercles pour refléter les changements des zones de recharge.
+     * @param : void
+     * @return : void
+     */
+    private void updateVilleCircles() {
+        // Met à jour les cercles pour refléter les changements des zones de recharge
+        for (Ville ville : communaute.getVilles()) {
+            Circle circle = villeCircles.get(ville.getNom());
+            if (circle != null) {
+                circle.setFill(ville.aZoneRecharge() ? Color.GREEN : Color.BLUE);
+            }
+        }
+    }
+
+    /**
+     * Affiche le menu de sauvegarde et de quitter.
+     * @param graphPane
+     * @param terminalOutputPane
+     * @param buttonBox
+     * @return void
+     */
+    private void showSaveQuitMenu(Pane graphPane, TextArea terminalOutputPane, HBox buttonBox) {
+
+        buttonBox.getChildren().clear();
+        terminalOutputPane.clear();
+
+        Button saveButton = createButton("Sauvegarder", "#4CAF50");
+        Button quitButton = createButton("Quitter", "#F44336");
+
+        saveButton.setOnAction(e -> {
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle("Save Community Data");
+            fileChooser.getExtensionFilters().addAll(
+                    new FileChooser.ExtensionFilter("Text Files", "*.txt"),
+                    new FileChooser.ExtensionFilter("All Files", "*.*"));
+            File selectedFile = fileChooser.showSaveDialog(primaryStage);
+
+            if (selectedFile != null) {
+                GestionFichier gestionFichier = new GestionFichier(communaute); // Assuming GestionFichier has a no-arg
+                                                                                // constructor
+                gestionFichier.sauvegarderCommunaute(selectedFile.getAbsolutePath());
+                showAlert("Sauvegarde réussie",
+                        "Les données ont été sauvegardées avec succès dans : " + selectedFile.getAbsolutePath());
+            }
+        });
+
+        quitButton.setOnAction(e -> {
+            Platform.exit();
+        });
+
+        buttonBox.getChildren().addAll(saveButton, quitButton);
+    }
+
+    /**
+     * Méthode pour ajouter une route.
+     * @param graphPane
+     * @return void
+     */
     private void addRoute(Pane graphPane) {
         List<Ville> villes = communaute.getVilles();
         ChoiceDialog<Ville> dialog = new ChoiceDialog<>(villes.get(0), villes);
@@ -267,7 +414,11 @@ public class SecondPage {
         });
     }
 
-    // Méthode pour supprimer une route
+    /**
+     * Méthode pour supprimer une route.
+     * @param graphPane
+     * @return void
+     */
     private void removeRoute(Pane graphPane) {
         List<Ville> villes = communaute.getVilles();
         if (villes.size() < 2) {
@@ -298,7 +449,14 @@ public class SecondPage {
         });
     }
 
-    // pour mettre à jour le graphique après la suppression d'une route
+    /**
+     * Met à jour le graphique en supprimant la ligne correspondant à la route
+     * supprimée.
+     * @param graphPane
+     * @param ville1
+     * @param ville2
+     * @return void
+     */
     private void updateGraph(Pane graphPane, Ville ville1, Ville ville2) {
         // On uniquement la ligne correspondant à la route supprimée
         Line toRemove = null;
@@ -324,7 +482,11 @@ public class SecondPage {
         }
     }
 
-    // méthode pour ajouter une zone de recharge
+    /**
+     * Méthode pour ajouter une zone de recharge.
+     * @param graphPane
+     * @return void
+     */
     private void addRechargeZone(Pane graphPane) {
         List<Ville> villes = communaute.getVilles();
         ChoiceDialog<Ville> dialog = new ChoiceDialog<>(villes.get(0), villes);
@@ -343,7 +505,11 @@ public class SecondPage {
         });
     }
 
-    // méthode pour supprimer une zone de recharge
+    /**
+     * Méthode pour supprimer une zone de recharge.
+     * @param graphPane
+     * @return void
+     */
     private void removeRechargeZone(Pane graphPane) {
         List<Ville> villes = communaute.getVilles();
         ChoiceDialog<Ville> dialog = new ChoiceDialog<>(villes.get(0), villes);
@@ -396,7 +562,12 @@ public class SecondPage {
         });
     }
 
-    // Cette méthode met à jour la couleur du cercle représentant la ville
+    /**
+     * Met à jour la couleur du cercle d'une ville.
+     * @param ville
+     * @param color
+     * @return void
+     */
     private void updateCircleColor(Ville ville, Color color) {
         Circle circle = villeCircles.get(ville.getNom());
         if (circle != null) {
@@ -404,7 +575,12 @@ public class SecondPage {
         }
     }
 
-    // Cette méthode affiche une boîte de dialogue d'alerte
+    /**
+     * Affiche une alerte avec un titre et un contenu.
+     * @param title
+     * @param content
+     * @return void
+     */
     private void showAlert(String title, String content) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle(title);
@@ -413,7 +589,13 @@ public class SecondPage {
         alert.showAndWait();
     }
 
-    // Cette méthode dessine une route entre deux villes
+    /**
+     * Dessine une route entre deux villes.
+     * @param graphPane
+     * @param ville1
+     * @param ville2
+     * @return void
+     */
     private void drawRoute(Pane graphPane, Ville ville1, Ville ville2) {
         Circle circle1 = villeCircles.get(ville1.getNom());
         Circle circle2 = villeCircles.get(ville2.getNom());
@@ -426,36 +608,36 @@ public class SecondPage {
         }
     }
 
-    // Méthode pour afficher le graphique
+    /**
+     * Affiche les villes et les routes dans le Pane.
+     * @param graphPane de type Pane 
+     * @param terminalOutputPane
+     */
     private void displayGraph(Pane graphPane, TextArea terminalOutputPane) {
-        terminalOutputPane.appendText("Affichage du graphe...\n");
 
-        graphPane.getChildren().clear();
+        graphPane.getChildren().removeIf(node -> node instanceof Circle || node instanceof Label);
 
         List<Ville> villes = communaute.getVilles();
 
-        // Ajustez le rayon en fonction de la taille du Pane et du nombre de villes.
         double radius = calculateOptimalRadius(villes.size(), graphPane);
-
-        // Centre du cercle
         double centerX = graphPane.getWidth() / 2;
         double centerY = graphPane.getHeight() / 2;
         double angleStep = 360.0 / villes.size();
 
-        // Pour répartir les villes uniformément autour du cercle
-        double initialAngle = -90.0; // Commencez à partir du haut
-
         for (int i = 0; i < villes.size(); i++) {
             Ville ville = villes.get(i);
+            double angle = Math.toRadians(-90.0 + i * angleStep); // Convertissez en radians pour le calcul
 
-            // Calcul des coordonnées x et y pour positionner la ville
-            double angle = initialAngle + angleStep * i;
-            double x = centerX + radius * Math.cos(Math.toRadians(angle));
-            double y = centerY + radius * Math.sin(Math.toRadians(angle));
-
-            // La taille du cercle et de l'étiquette peut être ajustée en fonction du nombre
-            // de villes
+            // Déplacez cette ligne avant son premier usage dans les calculs de 'x' et 'y'
             double circleRadius = Math.max(10, 30 - 0.5 * villes.size());
+
+            // Calculez les positions 'x' et 'y' en vous assurant qu'elles sont dans les
+            // limites du Pane
+            double x = Math.max(circleRadius,
+                    Math.min(centerX + radius * Math.cos(angle), graphPane.getWidth() - circleRadius));
+            double y = Math.max(circleRadius,
+                    Math.min(centerY + radius * Math.sin(angle), graphPane.getHeight() - circleRadius));
+
             Circle circle = new Circle(x, y, circleRadius);
             circle.setFill(ville.aZoneRecharge() ? Color.GREEN : Color.BLUE);
 
@@ -465,20 +647,23 @@ public class SecondPage {
             label.setTextFill(Color.RED);
             label.setEffect(new DropShadow(1, Color.BLACK));
 
-            // Centrez le texte dans le cercle
             label.layoutXProperty().bind(circle.centerXProperty().subtract(label.widthProperty().divide(2)));
             label.layoutYProperty().bind(circle.centerYProperty().subtract(label.heightProperty().divide(2)));
 
             graphPane.getChildren().addAll(circle, label);
             villeCircles.put(ville.getNom(), circle);
         }
-
         // Dessiner les routes
         drawRoutes(graphPane);
     }
 
+    /**
+     * Dessine les routes entre les villes.
+     * @param graphPane
+     * @return void
+     */
     private void drawRoutes(Pane graphPane) {
-        for (Pair<String, String> routeInfo : CommunauteFileManager.getRoutesFromFile()) {
+        for (Pair<String, String> routeInfo : GestionFichier.getRoutesFromFile()) {
             String ville1Name = routeInfo.getKey();
             String ville2Name = routeInfo.getValue();
             Ville ville1 = communaute.getVille(ville1Name);
