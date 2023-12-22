@@ -1,3 +1,9 @@
 @echo off
-cd /d "C:\Users\33778\Desktop\javafxprog\javafx-sdk-17.0.9"
-"C:\Users\33778\AppData\Local\Programs\Eclipse Adoptium\jdk-17.0.8.101-hotspot\bin\java.exe" @"C:\Users\33778\AppData\Local\Temp\cp_32j3zhskrdgkebaj75nuv77t3.argfile" app
+
+rem Compile the Java code
+javac --module-path "lib" --add-modules javafx.controls,javafx.fxml -d "bin" "app.java"
+
+rem Run the compiled Java program
+java --module-path "lib" --add-modules javafx.controls,javafx.fxml -cp "bin" app
+
+pause
